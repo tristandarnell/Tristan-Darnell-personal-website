@@ -452,7 +452,15 @@ export default function Home() {
                 <span className="absolute -left-[34px] top-6 h-3.5 w-3.5 rounded-full bg-primary" />
                 <p className="text-xs uppercase tracking-[0.12em] text-blue-700">{item.dates}</p>
                 <h3 className="mt-1 text-xl font-semibold text-slate-900">{item.role}</h3>
-                <p className="text-sm text-muted">{item.org}</p>
+                {item.orgUrl ? (
+                  <p className="text-sm text-muted">
+                    <a href={item.orgUrl} target="_blank" rel="noreferrer" className="transition-colors hover:text-foreground">
+                      {item.org}
+                    </a>
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted">{item.org}</p>
+                )}
                 <ul className="mt-3 space-y-2 text-sm text-muted">
                   {item.bullets.map((bullet) => (
                     <li key={bullet}>{bullet}</li>

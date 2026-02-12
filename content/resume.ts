@@ -25,10 +25,19 @@ export const education = {
   involvement: ["Catalyst", "HackDuke", "Duke Quant Finance Club"]
 };
 
-export const experience = [
+type ExperienceItem = {
+  role: string;
+  org: string;
+  orgUrl?: string;
+  dates: string;
+  bullets: string[];
+};
+
+export const experience: ExperienceItem[] = [
   {
     role: "Incoming Software Engineering Intern",
     org: "Lockheed Martin",
+    orgUrl: "https://www.lockheedmartin.com/en-us/who-we-are/business-areas/space.html",
     dates: "Summer 2026 (Incoming)",
     bullets: [
       "Joining Lockheed Martin as a software engineering intern for Summer 2026.",
@@ -48,6 +57,7 @@ export const experience = [
   {
     role: "Software Engineering Intern",
     org: "HackDuke",
+    orgUrl: "https://hackduke.org",
     dates: "Aug 2025 – Present",
     bullets: [
       "Building and deploying the official HackDuke website using React, PostgreSQL, and Python.",
