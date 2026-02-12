@@ -720,6 +720,10 @@ a {
   min-width: 0;
 }
 
+.personality-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .spotify-state {
   font-size: 0.95rem;
   color: #475569;
@@ -1089,7 +1093,7 @@ a {
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1200px) {
   .spotify-artist-rail {
     grid-template-columns: 1fr;
   }
@@ -1097,6 +1101,12 @@ a {
   .spotify-table-head,
   .spotify-table-row {
     grid-template-columns: 1.65rem minmax(0, 1fr) minmax(0, 0.9fr);
+  }
+}
+
+@media (min-width: 1700px) {
+  .personality-layout {
+    grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
   }
 }
 

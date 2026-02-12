@@ -1,0 +1,11 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="dt_bg" x1="26" y1="10" x2="236" y2="244" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0F172A"/>
+      <stop offset="1" stop-color="#0284C7"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="128" fill="url(#dt_bg)"/>
+  <circle cx="128" cy="128" r="92" fill="#0D1B3A" fill-opacity="0.46"/>
+  <text x="128" y="145" text-anchor="middle" fill="#DBEAFE" font-family="system-ui, -apple-system, sans-serif" font-size="82" font-weight="700">DT</text>
+</svg>

@@ -1,0 +1,11 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tw_bg" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1D4ED8"/>
+      <stop offset="1" stop-color="#3B82F6"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="128" fill="url(#tw_bg)"/>
+  <circle cx="128" cy="128" r="92" fill="#0A132E" fill-opacity="0.44"/>
+  <text x="128" y="145" text-anchor="middle" fill="#EFF6FF" font-family="system-ui, -apple-system, sans-serif" font-size="82" font-weight="700">TW</text>
+</svg>

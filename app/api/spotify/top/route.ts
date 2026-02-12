@@ -28,31 +28,31 @@ const OWNER_FALLBACK_PAYLOAD: SpotifyTopPayload = {
     {
       id: "fallback-dominic-fike",
       name: "Dominic Fike",
-      image: null,
+      image: "/images/spotify-fallback-dominic-fike.svg",
       url: "https://open.spotify.com/artist/6USv9qhCn6zfxlBQIYJ9qs"
     },
     {
       id: "fallback-kanye-west",
       name: "Kanye West",
-      image: null,
+      image: "/images/spotify-fallback-kanye-west.svg",
       url: "https://open.spotify.com/artist/5K4W6rqBFWDnAN6FQUkS6x"
     },
     {
       id: "fallback-the-weeknd",
       name: "The Weeknd",
-      image: null,
+      image: "/images/spotify-fallback-the-weeknd.svg",
       url: "https://open.spotify.com/artist/1Xyo4u8uXC1ZmMpatF05PJ"
     },
     {
       id: "fallback-don-toliver",
       name: "Don Toliver",
-      image: null,
+      image: "/images/spotify-fallback-don-toliver.svg",
       url: "https://open.spotify.com/artist/4Gso3d4CscCijv0lmajZWs"
     },
     {
       id: "fallback-mac-miller",
       name: "Mac Miller",
-      image: null,
+      image: "/images/spotify-fallback-mac-miller.svg",
       url: "https://open.spotify.com/artist/4LLpKhyESsyAXpc4laK94U"
     }
   ],

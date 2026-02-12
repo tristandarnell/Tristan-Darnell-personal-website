@@ -621,7 +621,7 @@ export default function Home() {
         </section>
 
         <section id="personality" className="section">
-          <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1.35fr)_minmax(260px,0.65fr)]">
+          <div className="personality-layout grid items-start gap-5">
             <Card className="photo-card spotify-card min-w-0 overflow-hidden p-5">
               <CardHeader className="p-0 pb-4">
                 <CardTitle className="spotify-title inline-flex items-center gap-2 text-2xl text-slate-900">
