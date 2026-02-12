@@ -1,7 +1,39 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Activity, Code2, Database, Github, Linkedin, Mail, Menu, Moon, Music4, Sun, X } from "lucide-react";
+import {
+  Activity,
+  Atom,
+  Binary,
+  Blocks,
+  Braces,
+  ChartLine,
+  Code2,
+  CodeXml,
+  Container,
+  CupSoda,
+  Database,
+  DatabaseZap,
+  FileCode2,
+  Github,
+  Linkedin,
+  Mail,
+  Menu,
+  Moon,
+  Music4,
+  PanelsTopLeft,
+  Rocket,
+  Scale,
+  Server,
+  Sigma,
+  Sun,
+  Timer,
+  Wind,
+  Workflow,
+  Wrench,
+  X,
+  type LucideIcon
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +53,30 @@ const sectionNavItems = [
   { id: "resume-info", label: "Resume" },
   { id: "personality", label: "Spotify" }
 ] as const;
+const skillIconMap: Record<string, LucideIcon> = {
+  Python: FileCode2,
+  "C++": Binary,
+  Java: CupSoda,
+  JavaScript: Braces,
+  SQL: Database,
+  "HTML/CSS": CodeXml,
+  React: Atom,
+  "Next.js": Rocket,
+  "Node.js": Server,
+  NestJS: Blocks,
+  Tailwind: Wind,
+  "shadcn/ui": PanelsTopLeft,
+  "PostgreSQL (Neon/Supabase)": Database,
+  Prisma: Workflow,
+  Redis: DatabaseZap,
+  BullMQ: Activity,
+  Docker: Container,
+  Pandas: ChartLine,
+  NumPy: Sigma,
+  Asyncio: Timer,
+  Backtesting: ChartLine,
+  "Risk Parity": Scale
+};
 
 type SpotifyArtist = {
   id: string;
@@ -694,11 +750,17 @@ export default function Home() {
                     <div key={skillGroup.group}>
                       <p className="text-xs uppercase tracking-[0.12em] text-blue-700">{skillGroup.group}</p>
                       <div className="mt-2 flex flex-wrap gap-2">
-                        {skillGroup.items.map((item) => (
-                          <span key={item} className="tag-chip rounded-full px-2 py-0.5 text-xs font-semibold">
-                            {item}
-                          </span>
-                        ))}
+                        {skillGroup.items.map((item) => {
+                          const SkillIcon = skillIconMap[item] ?? Wrench;
+                          return (
+                            <span key={item} className="tag-chip skill-chip rounded-full px-2 py-0.5 text-xs font-semibold">
+                              <span className="skill-chip-icon" aria-hidden="true">
+                                <SkillIcon className="h-3.5 w-3.5" />
+                              </span>
+                              <span>{item}</span>
+                            </span>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}

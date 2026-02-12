@@ -522,6 +522,25 @@ a {
   box-shadow: 0 4px 10px rgba(56, 189, 248, 0.12);
 }
 
+.skill-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-right: 0.62rem;
+}
+
+.skill-chip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  background: rgba(191, 219, 254, 0.74);
+  color: #1d4ed8;
+  flex: 0 0 auto;
+}
+
 .hero-email-link {
   color: #0f172a;
 }
@@ -941,6 +960,11 @@ a {
   background: rgba(30, 41, 59, 0.78);
   border-color: rgba(96, 165, 250, 0.62);
   color: #e2e8f0;
+}
+
+.dark .skill-chip-icon {
+  background: rgba(37, 99, 235, 0.36);
+  color: #bfdbfe;
 }
 
 .dark .hero-email-link {
