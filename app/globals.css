@@ -443,10 +443,24 @@ a {
 }
 
 .name-gradient {
-  background: linear-gradient(90deg, #1e3a8a 0%, #1d4ed8 36%, #2563eb 68%, #3b82f6 100%);
+  background: linear-gradient(110deg, #1e3a8a 0%, #1d4ed8 24%, #2563eb 48%, #38bdf8 72%, #3b82f6 100%);
+  background-size: 220% 220%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  animation: name-blue-shift 8.5s ease-in-out infinite;
+}
+
+@keyframes name-blue-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .section-heading > h2 {
@@ -1424,6 +1438,10 @@ a {
   .hero-float,
   .hero-float-part,
   .photo-polaroid {
+    animation: none;
+  }
+
+  .name-gradient {
     animation: none;
   }
 }
