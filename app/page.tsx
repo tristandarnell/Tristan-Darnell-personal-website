@@ -42,6 +42,29 @@ type SpotifyTopResponse = {
   } | null;
 };
 
+function formatSpotifyReason(reason?: string): string {
+  if (!reason) {
+    return "";
+  }
+
+  if (reason.includes(":429")) {
+    const retryMatch = reason.match(/retry_after=(\d+)/);
+    if (!retryMatch) {
+      return "Spotify is rate limited right now. Retrying shortly.";
+    }
+    const raw = Number(retryMatch[1]);
+    const delayMs = Number.isFinite(raw) ? (raw <= 180 ? raw * 1000 : raw) : 0;
+    const delaySec = Math.max(1, Math.round(delayMs / 1000));
+    return `Spotify is rate limited right now. Retrying in about ${delaySec}s.`;
+  }
+
+  if (reason.includes(":401") || reason.includes("owner_refresh_failed")) {
+    return "Spotify authentication needs to be refreshed.";
+  }
+
+  return "Spotify is temporarily unavailable.";
+}
+
 export default function Home() {
   const [showImageErrors, setShowImageErrors] = useState({ arya: false, omar: false });
   const homePhotos = media.personalPhotos.slice(2);
@@ -408,7 +431,7 @@ export default function Home() {
                 ) : !spotifyData?.connected ? (
                   <p className="spotify-state">
                     Spotify data is unavailable right now. Check back shortly.
-                    {spotifyData?.reason ? ` (${spotifyData.reason.replaceAll("_", " ")})` : ""}
+                    {spotifyData?.reason ? ` ${formatSpotifyReason(spotifyData.reason)}` : ""}
                   </p>
                 ) : (
                   <>
