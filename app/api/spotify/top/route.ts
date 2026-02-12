@@ -11,6 +11,9 @@ export const revalidate = 60 * 60;
 
 const SPOTIFY_ACCOUNTS_URL = "https://accounts.spotify.com";
 const SPOTIFY_API_URL = "https://api.spotify.com/v1";
+const OWNER_SPOTIFY_PROFILE_URL =
+  process.env.SPOTIFY_PROFILE_URL?.trim() || process.env.NEXT_PUBLIC_SPOTIFY_PROFILE_URL?.trim() || null;
+const OWNER_SPOTIFY_PROFILE_NAME = process.env.SPOTIFY_PROFILE_NAME?.trim() || "Spotify Profile";
 
 type TopRoutePayload = SpotifyTopPayload & {
   reason?: string;
@@ -173,6 +176,16 @@ function stableCacheControl() {
   return `public, s-maxage=${RESPONSE_S_MAXAGE_SECONDS}, stale-while-revalidate=${RESPONSE_STALE_WHILE_REVALIDATE_SECONDS}`;
 }
 
+function ownerProfileFallback() {
+  if (!OWNER_SPOTIFY_PROFILE_URL) {
+    return null;
+  }
+  return {
+    displayName: OWNER_SPOTIFY_PROFILE_NAME,
+    url: OWNER_SPOTIFY_PROFILE_URL
+  };
+}
+
 function ownerCachePayload(): TopRoutePayload | null {
   if (!ownerCache.payload) {
     return null;
@@ -282,6 +295,7 @@ async function ownerFallbackPayload(reason: string): Promise<TopRoutePayload> {
   return {
     ...OWNER_FALLBACK_PAYLOAD,
     artists,
+    profile: ownerProfileFallback() ?? OWNER_FALLBACK_PAYLOAD.profile,
     mode: "owner",
     reason
   };
@@ -358,13 +372,17 @@ export async function GET(request: NextRequest) {
 
     const ownerResult = await fetchSpotifyTopData(ownerTokenData.accessToken);
     if (ownerResult.ok) {
-      ownerCache.payload = ownerResult.payload;
+      const payloadWithProfileFallback: SpotifyTopPayload = {
+        ...ownerResult.payload,
+        profile: ownerResult.payload.profile ?? ownerProfileFallback()
+      };
+      ownerCache.payload = payloadWithProfileFallback;
       ownerCache.expiresAt = now + OWNER_CACHE_TTL_MS;
       ownerCache.staleUntil = now + OWNER_STALE_TTL_MS;
       ownerCache.nextRetryAt = 0;
       return responseWithPayload(
         {
-          ...ownerResult.payload,
+          ...payloadWithProfileFallback,
           mode: "owner"
         },
         {

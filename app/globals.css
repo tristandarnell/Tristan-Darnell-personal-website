@@ -624,6 +624,7 @@ a {
 
 .hero-shows-box {
   width: 100%;
+  grid-column: 1 / -1;
   display: grid;
   gap: 0.14rem;
   justify-items: stretch;
@@ -654,6 +655,12 @@ a {
   padding: 0.16rem;
 }
 
+.hero-media-group-podcasts {
+  width: fit-content;
+  max-width: 100%;
+  justify-self: center;
+}
+
 .hero-media-heading {
   margin: 0 0 0.12rem;
   display: inline-flex;
@@ -678,21 +685,22 @@ a {
 }
 
 .hero-media-group-books .hero-media-covers {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .hero-media-group-podcasts .hero-media-covers {
   grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
 }
 
 .hero-media-group-podcasts .hero-media-cover {
-  width: 100%;
-  max-width: 82px;
+  width: auto;
+  max-width: 88px;
   justify-self: center;
 }
 
 .hero-media-group-books-wide {
-  grid-column: 1 / -1;
+  grid-column: auto;
 }
 
 .hero-media-cover {
@@ -1668,7 +1676,7 @@ a {
   }
 
   .hero-media-group-books-wide {
-    grid-column: 1 / -1;
+    grid-column: auto;
   }
 }
 
@@ -1773,6 +1781,10 @@ a {
 
   .hero-media-group-books-wide {
     grid-column: auto;
+  }
+
+  .hero-media-group-books .hero-media-covers {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .hero-float {

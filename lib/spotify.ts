@@ -6,6 +6,13 @@ const TOP_ARTISTS_LIMIT = 5;
 const TOP_TRACKS_LIMIT = 5;
 const TOP_RANGE = "medium_term";
 const ARTISTS_LOOKUP_BATCH_SIZE = 50;
+const SPOTIFY_ARTIST_IMAGE_FALLBACKS: Record<string, string> = {
+  "dominic fike": "/images/spotify-fallback-dominic-fike.svg",
+  "kanye west": "/images/spotify-fallback-kanye-west.svg",
+  "the weeknd": "/images/spotify-fallback-the-weeknd.svg",
+  "don toliver": "/images/spotify-fallback-don-toliver.svg",
+  "mac miller": "/images/spotify-fallback-mac-miller.svg"
+};
 
 type TokenResponse = {
   access_token: string;
@@ -185,6 +192,19 @@ function chunkItems<T>(items: T[], size: number): T[][] {
   return chunks;
 }
 
+function normalizeArtistName(name: string) {
+  return name
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^\w\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getArtistFallbackImage(artistName: string) {
+  return SPOTIFY_ARTIST_IMAGE_FALLBACKS[normalizeArtistName(artistName)] ?? null;
+}
+
 async function fetchArtistImagesByIds(accessToken: string, artistIds: string[]) {
   const uniqueIds = Array.from(new Set(artistIds.filter(Boolean)));
   const imageByArtistId = new Map<string, string>();
@@ -249,7 +269,7 @@ export async function fetchSpotifyTopData(accessToken: string): Promise<SpotifyT
   const topArtists = artistsJson.items.map((artist) => ({
     id: artist.id,
     name: artist.name,
-    image: artist.images?.[0]?.url ?? null,
+    image: artist.images?.[0]?.url ?? getArtistFallbackImage(artist.name),
     url: artist.external_urls?.spotify ?? "https://open.spotify.com"
   }));
   const artistImagesById = await fetchArtistImagesByIds(
@@ -263,7 +283,7 @@ export async function fetchSpotifyTopData(accessToken: string): Promise<SpotifyT
       connected: true,
       artists: topArtists.map((artist) => ({
         ...artist,
-        image: artistImagesById.get(artist.id) ?? artist.image ?? null
+        image: artistImagesById.get(artist.id) ?? artist.image ?? getArtistFallbackImage(artist.name)
       })),
       tracks: tracksJson.items.map((track) => ({
         id: track.id,

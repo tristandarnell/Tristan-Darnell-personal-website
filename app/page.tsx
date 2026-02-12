@@ -289,6 +289,8 @@ export default function Home() {
   });
   const spotifyArtistCount = spotifyArtistsForUi.length;
   const spotifyTrackCount = spotifyTopTracks.length;
+  const spotifyProfileLink =
+    spotifyDisplayData?.profile?.url ?? process.env.NEXT_PUBLIC_SPOTIFY_PROFILE_URL ?? media.spotifyLink;
   const linkedinUrl = profile.links.find((link) => link.label === "LinkedIn")?.href ?? "#";
   const githubUrl = profile.links.find((link) => link.label === "GitHub")?.href ?? "#";
   const showImageSrc = (character: "arya" | "omar") => {
@@ -893,7 +895,7 @@ export default function Home() {
                   Live top artists and songs from my Spotify account.
                 </CardDescription>
                 <a
-                  href={spotifyDisplayData?.profile?.url ?? media.spotifyLink}
+                  href={spotifyProfileLink}
                   target="_blank"
                   rel="noreferrer"
                   className="spotify-profile-link"
@@ -927,9 +929,10 @@ export default function Home() {
                               )?.image ??
                               slotFallback?.image ??
                               SPOTIFY_GENERIC_ARTIST_FALLBACK;
-                            const imageSrc = !spotifyBrokenImages[artist.id] ? artist.image ?? fallbackImage : fallbackImage;
+                            const imageStateKey = `${artist.id}-${artist.image ?? fallbackImage ?? ""}`;
+                            const imageSrc = !spotifyBrokenImages[imageStateKey] ? artist.image ?? fallbackImage : fallbackImage;
                             return (
-                              <li key={artist.id}>
+                              <li key={`${artist.id}-${artistIndex}`}>
                                 <a href={artist.url} target="_blank" rel="noreferrer" className="spotify-artist-pill">
                                   <span className="spotify-index">{rank}</span>
                                   {imageSrc ? (
@@ -938,7 +941,7 @@ export default function Home() {
                                       alt={artistName}
                                       className="spotify-avatar"
                                       referrerPolicy="no-referrer"
-                                      onError={() => setSpotifyBrokenImages((prev) => ({ ...prev, [artist.id]: true }))}
+                                      onError={() => setSpotifyBrokenImages((prev) => ({ ...prev, [imageStateKey]: true }))}
                                     />
                                   ) : (
                                     <span className="spotify-avatar spotify-avatar-fallback" aria-hidden="true">
