@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Activity,
   Atom,
@@ -46,14 +46,8 @@ const navItems = [
   { href: "#experience", label: "Experience" },
   { href: "#projects", label: "Projects" },
   { href: "#resume-info", label: "Resume Info" },
-  { href: "#personality", label: "Personality" },
+  { href: "#personality", label: "Spotify" },
   { href: "/photos", label: "Photos" }
-] as const;
-const sectionNavItems = [
-  { id: "experience", label: "Experience" },
-  { id: "projects", label: "Projects" },
-  { id: "resume-info", label: "Resume" },
-  { id: "personality", label: "Spotify" }
 ] as const;
 const skillIconMap: Record<string, LucideIcon> = {
   Python: FileCode2,
@@ -114,6 +108,58 @@ type SpotifyClientCache = {
 const SPOTIFY_CLIENT_CACHE_KEY = "spotify_top_cache_v4";
 const SPOTIFY_CLIENT_CACHE_TTL_MS = 1000 * 60 * 30;
 const SPOTIFY_RETRY_AT_KEY = "spotify_retry_at_v1";
+const SPOTIFY_ARTIST_IMAGE_FALLBACKS: Record<string, string> = {
+  "dominic fike": "/images/spotify-fallback-dominic-fike.svg",
+  "kanye west": "/images/spotify-fallback-kanye-west.svg",
+  "the weeknd": "/images/spotify-fallback-the-weeknd.svg",
+  "don toliver": "/images/spotify-fallback-don-toliver.svg",
+  "mac miller": "/images/spotify-fallback-mac-miller.svg"
+};
+const SPOTIFY_UI_FALLBACK: SpotifyTopResponse = {
+  connected: true,
+  artists: [
+    {
+      id: "fallback-dominic-fike",
+      name: "Dominic Fike",
+      image: "/images/spotify-fallback-dominic-fike.svg",
+      url: "https://open.spotify.com/artist/6USv9qhCn6zfxlBQIYJ9qs"
+    },
+    {
+      id: "fallback-kanye-west",
+      name: "Kanye West",
+      image: "/images/spotify-fallback-kanye-west.svg",
+      url: "https://open.spotify.com/artist/5K4W6rqBFWDnAN6FQUkS6x"
+    },
+    {
+      id: "fallback-the-weeknd",
+      name: "The Weeknd",
+      image: "/images/spotify-fallback-the-weeknd.svg",
+      url: "https://open.spotify.com/artist/1Xyo4u8uXC1ZmMpatF05PJ"
+    },
+    {
+      id: "fallback-don-toliver",
+      name: "Don Toliver",
+      image: "/images/spotify-fallback-don-toliver.svg",
+      url: "https://open.spotify.com/artist/4Gso3d4CscCijv0lmajZWs"
+    },
+    {
+      id: "fallback-mac-miller",
+      name: "Mac Miller",
+      image: "/images/spotify-fallback-mac-miller.svg",
+      url: "https://open.spotify.com/artist/4LLpKhyESsyAXpc4laK94U"
+    }
+  ],
+  tracks: [
+    { id: "fallback-best-you-had", name: "Best You Had", artists: ["Don Toliver"], url: "https://open.spotify.com/search/Best%20You%20Had%20Don%20Toliver" },
+    { id: "fallback-often", name: "Often", artists: ["The Weeknd"], url: "https://open.spotify.com/search/Often%20The%20Weeknd" },
+    { id: "fallback-bodies", name: "Bodies", artists: ["Dominic Fike"], url: "https://open.spotify.com/search/Bodies%20Dominic%20Fike" },
+    { id: "fallback-novacane", name: "Novacane", artists: ["Frank Ocean"], url: "https://open.spotify.com/search/Novacane%20Frank%20Ocean" },
+    { id: "fallback-cough-syrup", name: "Cough Syrup", artists: ["Young the Giant"], url: "https://open.spotify.com/search/Cough%20Syrup%20Young%20the%20Giant" }
+  ],
+  profile: null,
+  mode: "owner",
+  reason: "fallback_displayed"
+};
 
 function hasSpotifyRows(data: SpotifyTopResponse | null | undefined) {
   if (!data) {
@@ -122,11 +168,21 @@ function hasSpotifyRows(data: SpotifyTopResponse | null | undefined) {
   return Boolean(data.connected) || data.artists.length > 0 || data.tracks.length > 0;
 }
 
-function hasSpotifyArtistImages(data: SpotifyTopResponse | null | undefined) {
-  if (!data) {
-    return false;
+function getArtistFallbackImage(artistName: string) {
+  return SPOTIFY_ARTIST_IMAGE_FALLBACKS[artistName.toLowerCase()] ?? null;
+}
+
+function withSpotifyFallback(data: SpotifyTopResponse | null | undefined): SpotifyTopResponse {
+  if (!data || !hasSpotifyRows(data)) {
+    return SPOTIFY_UI_FALLBACK;
   }
-  return data.artists.some((artist) => Boolean(artist.image));
+  return {
+    ...data,
+    artists: data.artists.map((artist) => ({
+      ...artist,
+      image: artist.image ?? getArtistFallbackImage(artist.name)
+    }))
+  };
 }
 
 function parseRetryAfterSeconds(value: string | null): number {
@@ -183,12 +239,9 @@ export default function Home() {
   const [homePhotoErrors, setHomePhotoErrors] = useState<boolean[]>(homePhotos.map(() => false));
   const [menuOpen, setMenuOpen] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [activeSection, setActiveSection] = useState<(typeof sectionNavItems)[number]["id"]>("experience");
-  const [scrollProgress, setScrollProgress] = useState(0);
   const [spotifyData, setSpotifyData] = useState<SpotifyTopResponse | null>(null);
   const [spotifyLoading, setSpotifyLoading] = useState(true);
   const [spotifyBrokenImages, setSpotifyBrokenImages] = useState<Record<string, boolean>>({});
-  const sectionIds = useMemo(() => sectionNavItems.map((item) => item.id), []);
   const spotifyDisplayData = hasSpotifyRows(spotifyData) ? spotifyData : null;
   const spotifyArtistCount = spotifyDisplayData?.artists.length ?? 0;
   const spotifyTrackCount = spotifyDisplayData?.tracks.length ?? 0;
@@ -243,22 +296,6 @@ export default function Home() {
     const updateScrollMetrics = () => {
       rafId = 0;
       const scrollTop = window.scrollY || root.scrollTop || 0;
-      const scrollMax = Math.max(1, root.scrollHeight - window.innerHeight);
-      const progress = Math.min(1, Math.max(0, scrollTop / scrollMax));
-      const sectionTrigger = window.innerHeight * 0.32;
-      let currentSection = sectionIds[0];
-      sectionIds.forEach((sectionId) => {
-        const target = document.getElementById(sectionId);
-        if (!target) {
-          return;
-        }
-        const top = target.getBoundingClientRect().top;
-        if (top - sectionTrigger <= 0) {
-          currentSection = sectionId;
-        }
-      });
-      setScrollProgress(progress);
-      setActiveSection((prev) => (prev === currentSection ? prev : currentSection));
       root.style.setProperty("--scroll-parallax", `${(scrollTop * 0.08).toFixed(2)}px`);
       root.style.setProperty("--scroll-parallax-soft", `${(scrollTop * 0.045).toFixed(2)}px`);
     };
@@ -281,7 +318,7 @@ export default function Home() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, [sectionIds]);
+  }, []);
 
   useEffect(() => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -393,19 +430,18 @@ export default function Home() {
     const loadSpotifyTop = async () => {
       const cached = readSpotifyCache();
       const hasCachedData = hasSpotifyRows(cached?.data);
-      const cachedHasImages = hasSpotifyArtistImages(cached?.data);
 
-      if (cached && hasCachedData && cachedHasImages && active) {
-        setSpotifyData(cached.data);
+      if (cached && hasCachedData && active) {
+        setSpotifyData(withSpotifyFallback(cached.data));
         setSpotifyLoading(false);
       }
 
       const retryAtMs = readRetryAt();
-      if (retryAtMs > Date.now() && cached && hasCachedData && cachedHasImages) {
+      if (retryAtMs > Date.now() && cached && hasCachedData) {
         return;
       }
 
-      if (cached && cachedHasImages && Date.now() - cached.savedAt < SPOTIFY_CLIENT_CACHE_TTL_MS) {
+      if (cached && hasCachedData && Date.now() - cached.savedAt < SPOTIFY_CLIENT_CACHE_TTL_MS) {
         return;
       }
 
@@ -420,16 +456,15 @@ export default function Home() {
         } else {
           writeRetryAt(0);
         }
-        const data: SpotifyTopResponse = await response.json();
+        const data = withSpotifyFallback((await response.json()) as SpotifyTopResponse);
         const degraded = isDegradedSpotifyResponse(data);
-        const dataHasImages = hasSpotifyArtistImages(data);
         if (active) {
-          if (degraded && cached?.data && hasCachedData && cachedHasImages) {
-            setSpotifyData(cached.data);
+          if (degraded && cached?.data && hasCachedData) {
+            setSpotifyData(withSpotifyFallback(cached.data));
           } else {
             setSpotifyData(data);
           }
-          if (!degraded && hasSpotifyRows(data) && dataHasImages) {
+          if (hasSpotifyRows(data)) {
             writeSpotifyCache(data);
           }
           if (!degraded) {
@@ -438,9 +473,7 @@ export default function Home() {
         }
       } catch {
         if (active) {
-          if (!cached) {
-            setSpotifyData({ connected: false, artists: [], tracks: [], profile: null });
-          }
+          setSpotifyData(cached?.data ? withSpotifyFallback(cached.data) : SPOTIFY_UI_FALLBACK);
         }
       } finally {
         if (active) {
@@ -487,24 +520,6 @@ export default function Home() {
             </button>
           </div>
         </div>
-        <div className="section-nav-wrap">
-          <div className="container">
-            <nav className="section-nav" aria-label="Section navigation">
-              {sectionNavItems.map((item) => (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  className={`section-nav-link ${activeSection === item.id ? "is-active" : ""}`}
-                >
-                  {item.label}
-                </a>
-              ))}
-            </nav>
-            <div className="section-progress-track" aria-hidden="true">
-              <span className="section-progress-fill" style={{ transform: `scaleX(${scrollProgress})` }} />
-            </div>
-          </div>
-        </div>
         <div id="site-nav-drawer" className={`menu-drawer-wrap ${menuOpen ? "open" : ""}`}>
           <div className="menu-drawer-scrim" onClick={() => setMenuOpen(false)} />
           <aside className="menu-drawer">
@@ -536,7 +551,7 @@ export default function Home() {
           <div className="max-w-3xl">
             <div className="flex flex-col justify-center gap-6">
               <h1 className="name-gradient text-4xl font-semibold leading-tight sm:text-5xl">{profile.name}</h1>
-              <p className="text-sm text-muted">{profile.tagline}</p>
+              <p className="tagline-badge text-sm text-muted">{profile.tagline}</p>
               <div className="hero-personal-photos">
                 {homePhotos.map((photo, idx) => (
                   <figure key={photo.src} className={`hero-photo-chip ${idx === 0 ? "hero-photo-left" : "hero-photo-right"}`}>
@@ -579,23 +594,25 @@ export default function Home() {
           </div>
           <div className="hero-float-layer">
             <div className="hero-shows-block">
-              <p className="hero-shows-heading">Current Rotation</p>
-              <div className="hero-shows-grid">
-                <div className="hero-show-item hero-show-item-arya">
-                  <div className="hero-float" data-quote="Winter is coming ❄️">
-                    <img src={showImageSrc("arya")} alt="Arya Stark from Game of Thrones" onError={() => onShowImageError("arya")} className="hero-float-base" />
+              <p className="hero-shows-heading">Favorites</p>
+              <div className="hero-shows-box">
+                <div className="hero-shows-grid">
+                  <div className="hero-show-item hero-show-item-arya">
+                    <div className="hero-float" data-quote="Winter is coming">
+                      <img src={showImageSrc("arya")} alt="Arya Stark from Game of Thrones" onError={() => onShowImageError("arya")} className="hero-float-base" />
+                    </div>
+                    <p className="hero-show-label">Game of Thrones</p>
                   </div>
-                  <p className="hero-show-label">Game of Thrones</p>
-                </div>
-                <div className="hero-show-item hero-show-item-omar">
-                  <div className="hero-float" data-quote="A Man's gotta have a code 🧠🔥">
-                    <img src={showImageSrc("omar")} alt="Omar Little from The Wire" onError={() => onShowImageError("omar")} className="hero-float-base" />
+                  <div className="hero-show-item hero-show-item-omar">
+                    <div className="hero-float" data-quote="A Man's gotta have a code">
+                      <img src={showImageSrc("omar")} alt="Omar Little from The Wire" onError={() => onShowImageError("omar")} className="hero-float-base" />
+                    </div>
+                    <p className="hero-show-label">The Wire</p>
                   </div>
-                  <p className="hero-show-label">The Wire</p>
                 </div>
               </div>
               <div className="hero-media-grid">
-                <div className="hero-media-group">
+                <div className="hero-media-group hero-media-group-books">
                   <p className="hero-media-heading">
                     <BookOpenText className="h-3.5 w-3.5" />
                     Books
@@ -608,7 +625,7 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
-                <div className="hero-media-group">
+                <div className="hero-media-group hero-media-group-podcasts">
                   <p className="hero-media-heading">
                     <Podcast className="h-3.5 w-3.5" />
                     Podcasts
@@ -632,7 +649,7 @@ export default function Home() {
           </div>
           <div className="experience-timeline relative ml-2 border-l border-blue-100 pl-7">
             {experience.map((item) => {
-              const itemLinks = item.links?.length ? item.links : item.orgUrl ? [{ label: item.org, href: item.orgUrl }] : [];
+              const itemLinks = item.links?.length ? item.links : item.orgUrl ? [{ label: `Visit ${item.org}`, href: item.orgUrl }] : [];
               return (
                 <div key={item.role} className="relative mb-5 rounded-2xl border border-blue-100 bg-white p-5 shadow-soft last:mb-0">
                   <span className="absolute -left-[34px] top-6 h-3.5 w-3.5 rounded-full bg-primary" />
@@ -648,6 +665,7 @@ export default function Home() {
                     <div className="entry-links mt-3">
                       {itemLinks.map((link) => (
                         <a key={link.href} href={link.href} target="_blank" rel="noreferrer" className="entry-link-chip">
+                          {link.logo ? <img src={link.logo} alt="" className="entry-link-logo" loading="lazy" referrerPolicy="no-referrer" /> : null}
                           {link.label}
                           <span aria-hidden="true">↗</span>
                         </a>
@@ -668,33 +686,24 @@ export default function Home() {
             <h2 className="section-title text-3xl font-semibold text-slate-900">Projects</h2>
             <p className="max-w-3xl text-muted">Systems work across trading research, automation, and data infrastructure.</p>
           </div>
-          <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
+          <div className="grid items-stretch gap-5 md:grid-cols-2 2xl:grid-cols-3">
             {projects.map((project, index) => {
               const Icon = projectIcons[index % projectIcons.length];
-              const projectLinks = [
-                project.proofUrl
-                  ? {
-                      href: project.proofUrl,
-                      label: project.proofLabel ?? "View write-up"
-                    }
-                  : null,
-                project.repoUrl
-                  ? {
+              const projectLinks = project.repoUrl
+                ? [
+                    {
                       href: project.repoUrl,
                       label: "View on GitHub",
                       withGithubIcon: true
                     }
-                  : null
-              ].filter((link): link is { href: string; label: string; withGithubIcon?: boolean } => Boolean(link));
+                  ]
+                : [];
               return (
-                <Card key={project.title} className="photo-card project-card border-blue-100">
+                <Card key={project.title} className="photo-card project-card h-full border-blue-100">
                   <CardHeader className="gap-2">
                     <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
                       <Icon className="h-5 w-5" />
                     </div>
-                    <Badge variant="accent" className="w-fit">
-                      {project.stage}
-                    </Badge>
                     <CardTitle className="text-2xl text-slate-900">{project.title}</CardTitle>
                     <CardDescription className="text-base text-muted">{project.blurb}</CardDescription>
                   </CardHeader>
@@ -719,7 +728,7 @@ export default function Home() {
                         <li key={item}>{item}</li>
                       ))}
                     </ul>
-                    {projectLinks.length ? (
+                    {projectLinks.length > 0 ? (
                       <div className="entry-links">
                         {projectLinks.map((link) => (
                           <a key={link.href} href={link.href} target="_blank" rel="noreferrer" className="entry-link-chip">
@@ -729,9 +738,7 @@ export default function Home() {
                           </a>
                         ))}
                       </div>
-                    ) : (
-                      <span className="text-sm text-muted">Write-up available on request.</span>
-                    )}
+                    ) : null}
                   </CardContent>
                 </Card>
               );
@@ -744,8 +751,8 @@ export default function Home() {
             <Badge className="w-fit">Resume Information</Badge>
             <h2 className="section-title text-3xl font-semibold text-slate-900">Education, coursework, and technical stack</h2>
           </div>
-          <div className="grid gap-5 xl:grid-cols-[1fr,1.1fr]">
-            <Card className="photo-card p-5">
+          <div className="grid items-stretch gap-5 xl:grid-cols-[minmax(0,1fr),minmax(0,1.1fr)]">
+            <Card className="photo-card h-full p-5">
               <CardHeader className="p-0 pb-4">
                 <CardTitle className="text-2xl text-slate-900">{education.school}</CardTitle>
                 <CardDescription className="text-base text-muted">
@@ -774,8 +781,8 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            <div className="grid gap-5">
-              <Card className="photo-card p-5">
+            <div className="grid h-full gap-5">
+              <Card className="photo-card h-full p-5">
                 <CardHeader className="p-0 pb-4">
                   <CardTitle className="text-2xl text-slate-900">Technical Skills</CardTitle>
                 </CardHeader>
@@ -801,7 +808,7 @@ export default function Home() {
                 </CardContent>
               </Card>
 
-              <Card className="photo-card p-5">
+              <Card className="photo-card h-full p-5">
                 <CardHeader className="p-0 pb-4">
                   <CardTitle className="text-2xl text-slate-900">Leadership and Awards</CardTitle>
                 </CardHeader>
@@ -819,8 +826,8 @@ export default function Home() {
         </section>
 
         <section id="personality" className="section">
-          <div className="personality-layout grid items-start gap-5">
-            <Card className="photo-card spotify-card min-w-0 overflow-hidden p-5">
+          <div className="personality-layout grid items-stretch gap-5">
+            <Card className="photo-card spotify-card h-full min-w-0 overflow-hidden p-5">
               <CardHeader className="p-0 pb-4">
                 <CardTitle className="spotify-title inline-flex items-center gap-2 text-2xl text-slate-900">
                   <Music4 className="h-5 w-5 text-blue-700" />
@@ -843,26 +850,31 @@ export default function Home() {
                     <section className="spotify-strip-block">
                       <p className="spotify-panel-label">Top Artists</p>
                       <ul className="spotify-artist-rail">
-                        {spotifyDisplayData.artists.map((artist, index) => (
-                          <li key={artist.id}>
-                            <a href={artist.url} target="_blank" rel="noreferrer" className="spotify-artist-pill">
-                              <span className="spotify-index">{index + 1}</span>
-                              {!spotifyBrokenImages[artist.id] && artist.image ? (
-                                <img
-                                  src={artist.image}
-                                  alt={artist.name}
-                                  className="spotify-avatar"
-                                  onError={() => setSpotifyBrokenImages((prev) => ({ ...prev, [artist.id]: true }))}
-                                />
-                              ) : (
-                                <span className="spotify-avatar spotify-avatar-fallback" aria-hidden="true">
-                                  {artist.name.charAt(0)}
-                                </span>
-                              )}
-                              <span className="spotify-link truncate">{artist.name}</span>
-                            </a>
-                          </li>
-                        ))}
+                        {spotifyDisplayData.artists.map((artist, index) => {
+                          const fallbackImage = getArtistFallbackImage(artist.name);
+                          const imageSrc = !spotifyBrokenImages[artist.id] ? artist.image ?? fallbackImage : fallbackImage;
+                          return (
+                            <li key={artist.id}>
+                              <a href={artist.url} target="_blank" rel="noreferrer" className="spotify-artist-pill">
+                                <span className="spotify-index">{index + 1}</span>
+                                {imageSrc ? (
+                                  <img
+                                    src={imageSrc}
+                                    alt={artist.name}
+                                    className="spotify-avatar"
+                                    referrerPolicy="no-referrer"
+                                    onError={() => setSpotifyBrokenImages((prev) => ({ ...prev, [artist.id]: true }))}
+                                  />
+                                ) : (
+                                  <span className="spotify-avatar spotify-avatar-fallback" aria-hidden="true">
+                                    {artist.name.charAt(0)}
+                                  </span>
+                                )}
+                                <span className="spotify-link truncate">{artist.name}</span>
+                              </a>
+                            </li>
+                          );
+                        })}
                       </ul>
                     </section>
 
@@ -898,7 +910,7 @@ export default function Home() {
                 )}
               </CardContent>
             </Card>
-            <Card className="photo-card photo-cta-card min-w-0 p-5">
+            <Card className="photo-card photo-cta-card h-full min-w-0 p-5">
               <CardHeader className="p-0 pb-4">
                 <CardTitle className="text-2xl text-slate-900">Photography</CardTitle>
                 <CardDescription className="text-base text-muted">A few film and landscape shots from my collection.</CardDescription>

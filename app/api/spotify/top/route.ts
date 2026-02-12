@@ -7,8 +7,7 @@ import {
   type SpotifyTopPayload
 } from "@/lib/spotify";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 60 * 60;
 
 const SPOTIFY_ACCOUNTS_URL = "https://accounts.spotify.com";
 const SPOTIFY_API_URL = "https://api.spotify.com/v1";
@@ -106,12 +105,12 @@ const OWNER_FALLBACK_PAYLOAD: SpotifyTopPayload = {
   profile: null
 };
 
-const OWNER_CACHE_TTL_MS = 1000 * 60 * 15;
+const OWNER_CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const OWNER_STALE_TTL_MS = 1000 * 60 * 60 * 24;
-const OWNER_DEFAULT_BACKOFF_MS = 1000 * 60 * 2;
+const OWNER_DEFAULT_BACKOFF_MS = 1000 * 60 * 15;
 const MAX_RETRY_BACKOFF_MS = 1000 * 60 * 60 * 24;
-const RESPONSE_S_MAXAGE_SECONDS = 900;
-const RESPONSE_STALE_WHILE_REVALIDATE_SECONDS = 3600;
+const RESPONSE_S_MAXAGE_SECONDS = 60 * 60;
+const RESPONSE_STALE_WHILE_REVALIDATE_SECONDS = 60 * 60 * 12;
 
 const ownerCache: OwnerCache = {
   payload: null,
@@ -166,7 +165,7 @@ function toRetrySeconds(delayMs: number) {
 }
 
 function rateLimitCacheControl(retrySeconds: number) {
-  const clamped = Math.max(60, Math.min(retrySeconds, 60 * 60));
+  const clamped = Math.max(300, Math.min(retrySeconds, 60 * 60));
   return `public, s-maxage=${clamped}, stale-while-revalidate=300`;
 }
 

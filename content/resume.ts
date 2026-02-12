@@ -2,7 +2,7 @@ export const profile = {
   name: "Tristan Darnell",
   location: "Orlando, FL",
   email: "tristdarnell@gmail.com",
-  tagline: "Software engineering * Duke CS/Math '28",
+  tagline: "Software Engineering · Duke CS/Math '28",
   blurb:
     "Duke CS/Math student building production web applications, backend infrastructure, and quantitative research tooling.",
   links: [
@@ -29,7 +29,7 @@ type ExperienceItem = {
   role: string;
   org: string;
   orgUrl?: string;
-  links?: Array<{ label: string; href: string }>;
+  links?: Array<{ label: string; href: string; logo?: string }>;
   dates: string;
   bullets: string[];
 };
@@ -39,7 +39,13 @@ export const experience: ExperienceItem[] = [
     role: "Incoming Software Engineering Intern",
     org: "Lockheed Martin",
     orgUrl: "https://www.lockheedmartin.com/en-us/who-we-are/business-areas/space.html",
-    links: [{ label: "Lockheed Space", href: "https://www.lockheedmartin.com/en-us/who-we-are/business-areas/space.html" }],
+    links: [
+      {
+        label: "Visit Lockheed",
+        href: "https://www.lockheedmartin.com/en-us/who-we-are/business-areas/space.html",
+        logo: "https://www.google.com/s2/favicons?domain=lockheedmartin.com&sz=64"
+      }
+    ],
     dates: "Summer 2026 (Incoming)",
     bullets: [
       "Joining Lockheed Martin as a software engineering intern for Summer 2026.",
@@ -60,7 +66,7 @@ export const experience: ExperienceItem[] = [
     role: "Software Engineering Intern",
     org: "HackDuke",
     orgUrl: "https://hackduke.org",
-    links: [{ label: "HackDuke", href: "https://hackduke.org" }],
+    links: [{ label: "Visit HackDuke", href: "https://hackduke.org", logo: "https://www.google.com/s2/favicons?domain=hackduke.org&sz=64" }],
     dates: "Aug 2025 – Present",
     bullets: [
       "Building and deploying the official HackDuke website using React, PostgreSQL, and Python.",
