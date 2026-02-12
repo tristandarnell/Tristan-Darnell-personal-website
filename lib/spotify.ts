@@ -56,6 +56,7 @@ export type SpotifyTopPayload = {
 
 export const spotifyCookieNames = {
   state: "spotify_auth_state",
+  setupMode: "spotify_auth_setup",
   accessToken: "spotify_access_token",
   refreshToken: "spotify_refresh_token",
   expiresAt: "spotify_expires_at"

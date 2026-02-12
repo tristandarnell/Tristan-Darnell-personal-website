@@ -50,6 +50,7 @@ export default function Home() {
   const [spotifyData, setSpotifyData] = useState<SpotifyTopResponse | null>(null);
   const [spotifyLoading, setSpotifyLoading] = useState(true);
   const [spotifyError, setSpotifyError] = useState<string | null>(null);
+  const [origin, setOrigin] = useState("");
   const linkedinUrl = profile.links.find((link) => link.label === "LinkedIn")?.href ?? "#";
   const githubUrl = profile.links.find((link) => link.label === "GitHub")?.href ?? "#";
   const showImageSrc = (character: "arya" | "omar") => {
@@ -128,6 +129,7 @@ export default function Home() {
     if (errorParam) {
       setSpotifyError(errorParam);
     }
+    setOrigin(window.location.origin);
   }, []);
 
   return (
@@ -414,14 +416,21 @@ export default function Home() {
                 ) : !spotifyData?.connected ? (
                   <div className="space-y-3">
                     <p className="text-sm text-muted">
-                      {spotifyError === "missing_config"
-                        ? "Spotify env vars are missing in this deployment."
+                      {spotifyError === "missing_client_id"
+                        ? "Spotify client ID is missing in this deployment."
+                        : spotifyError === "missing_config"
+                          ? "Spotify env vars are missing in this deployment."
                         : spotifyError
                           ? "Spotify auth failed. Check redirect URI and app settings, then try again."
                           : "Connect Spotify to show your top artists and tracks."}
                     </p>
+                    {(spotifyError === "missing_client_id" || spotifyError === "auth_failed") && origin ? (
+                      <p className="text-xs text-muted">
+                        Redirect URI to add in Spotify Dashboard: <code>{origin}/api/spotify/callback</code>
+                      </p>
+                    ) : null}
                     <Button asChild>
-                      <a href="/api/spotify/login">Connect Spotify</a>
+                      <a href="/api/spotify/login?setup=1">Connect Spotify</a>
                     </Button>
                   </div>
                 ) : (
