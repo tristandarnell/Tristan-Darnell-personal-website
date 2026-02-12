@@ -626,6 +626,175 @@ a {
   background-color: rgba(30, 64, 175, 0.42);
 }
 
+.spotify-card {
+  border-color: rgba(59, 130, 246, 0.42);
+  background:
+    linear-gradient(145deg, rgba(225, 238, 255, 0.92), rgba(210, 230, 255, 0.8) 46%, rgba(229, 242, 255, 0.72)),
+    radial-gradient(circle at top right, rgba(96, 165, 250, 0.2), transparent 52%);
+}
+
+.spotify-title {
+  letter-spacing: 0.01em;
+}
+
+.spotify-subtitle {
+  max-width: 56ch;
+}
+
+.spotify-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.spotify-state {
+  font-size: 0.95rem;
+  color: #475569;
+}
+
+.spotify-grid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.spotify-panel {
+  border-radius: 14px;
+  border: 1px solid rgba(147, 197, 253, 0.66);
+  background: linear-gradient(170deg, rgba(255, 255, 255, 0.84), rgba(239, 246, 255, 0.62));
+  padding: 0.85rem 0.9rem;
+}
+
+.spotify-panel-label {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #2563eb;
+}
+
+.spotify-list {
+  margin: 0.62rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.46rem;
+}
+
+.spotify-row {
+  display: flex;
+  align-items: center;
+  gap: 0.62rem;
+  min-height: 2.2rem;
+}
+
+.spotify-track-row {
+  align-items: flex-start;
+}
+
+.spotify-rank {
+  width: 1.35rem;
+  flex: 0 0 1.35rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.spotify-avatar {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1px solid rgba(147, 197, 253, 0.7);
+  flex: 0 0 1.9rem;
+}
+
+.spotify-avatar-fallback {
+  background: linear-gradient(150deg, rgba(191, 219, 254, 0.75), rgba(219, 234, 254, 0.5));
+}
+
+.spotify-link {
+  color: #0f172a;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.spotify-link:hover {
+  color: #1d4ed8;
+}
+
+.spotify-meta {
+  margin-top: 0.06rem;
+  font-size: 0.78rem;
+  color: #475569;
+}
+
+.spotify-profile-link {
+  display: inline-flex;
+  width: fit-content;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #1d4ed8;
+  transition: color 0.2s ease;
+}
+
+.spotify-profile-link:hover {
+  color: #1e40af;
+}
+
+.dark .spotify-card {
+  border-color: rgba(59, 130, 246, 0.45);
+  background:
+    linear-gradient(145deg, rgba(9, 25, 55, 0.96), rgba(11, 36, 77, 0.9) 52%, rgba(8, 25, 60, 0.86)),
+    radial-gradient(circle at 84% 15%, rgba(56, 189, 248, 0.15), transparent 45%);
+}
+
+.dark .spotify-state {
+  color: #93c5fd;
+}
+
+.dark .spotify-panel {
+  border-color: rgba(59, 130, 246, 0.42);
+  background: linear-gradient(170deg, rgba(13, 30, 60, 0.92), rgba(8, 23, 52, 0.84));
+}
+
+.dark .spotify-panel-label {
+  color: #93c5fd;
+}
+
+.dark .spotify-rank {
+  color: #93c5fd;
+}
+
+.dark .spotify-avatar {
+  border-color: rgba(96, 165, 250, 0.6);
+}
+
+.dark .spotify-avatar-fallback {
+  background: linear-gradient(150deg, rgba(30, 64, 175, 0.6), rgba(37, 99, 235, 0.4));
+}
+
+.dark .spotify-link {
+  color: #e2e8f0;
+}
+
+.dark .spotify-link:hover {
+  color: #bfdbfe;
+}
+
+.dark .spotify-meta {
+  color: #bfdbfe;
+}
+
+.dark .spotify-profile-link {
+  color: #93c5fd;
+}
+
+.dark .spotify-profile-link:hover {
+  color: #dbeafe;
+}
+
 @media (max-width: 768px) {
   .menu-drawer {
     right: 1rem;
@@ -640,6 +809,10 @@ a {
   .hero-photo-left,
   .hero-photo-right {
     transform: none;
+  }
+
+  .spotify-panel {
+    padding: 0.76rem 0.72rem;
   }
 }
 

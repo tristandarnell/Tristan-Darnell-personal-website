@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   }
 
   const setupMode = request.nextUrl.searchParams.get("setup") === "1";
-  const state = crypto.randomUUID();
+  const state = `${setupMode ? "setup" : "auth"}:${crypto.randomUUID()}`;
   const redirectUri = getSpotifyRedirectUri(request);
   const params = new URLSearchParams({
     response_type: "code",
@@ -26,13 +26,6 @@ export async function GET(request: NextRequest) {
 
   const response = NextResponse.redirect(`https://accounts.spotify.com/authorize?${params.toString()}`);
   response.cookies.set(spotifyCookieNames.state, state, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: getCookieSecurity(request),
-    path: "/",
-    maxAge: 60 * 10
-  });
-  response.cookies.set(spotifyCookieNames.setupMode, setupMode ? "1" : "0", {
     httpOnly: true,
     sameSite: "lax",
     secure: getCookieSecurity(request),

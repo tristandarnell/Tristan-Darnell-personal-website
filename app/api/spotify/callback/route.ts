@@ -21,11 +21,13 @@ export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
   const state = request.nextUrl.searchParams.get("state");
   const expectedState = request.cookies.get(spotifyCookieNames.state)?.value;
-  const setupMode = request.cookies.get(spotifyCookieNames.setupMode)?.value === "1";
+  const setupMode = Boolean(state?.startsWith("setup:"));
   const response = NextResponse.redirect(new URL("/", request.url));
   const failedResponse = NextResponse.redirect(new URL("/?spotify_error=auth_failed", request.url));
 
-  if (!config || !code || !state || !expectedState || expectedState !== state) {
+  const missingCoreParams = !config || !code || !state;
+  const invalidStandardState = !setupMode && (!expectedState || expectedState !== state);
+  if (missingCoreParams || invalidStandardState) {
     clearSpotifyCookies(failedResponse);
     return failedResponse;
   }
