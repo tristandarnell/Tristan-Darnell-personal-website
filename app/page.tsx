@@ -245,6 +245,7 @@ export default function Home() {
   const spotifyDisplayData = hasSpotifyRows(spotifyData) ? spotifyData : null;
   const spotifyTopArtists = spotifyDisplayData?.artists ?? [];
   const spotifyTopTracks = (spotifyDisplayData?.tracks ?? []).slice(0, 5);
+  const spotifyTopArtistsRows = [spotifyTopArtists.slice(0, 3), spotifyTopArtists.slice(3, 5)];
   const spotifyArtistCount = spotifyTopArtists.length;
   const spotifyTrackCount = spotifyTopTracks.length;
   const linkedinUrl = profile.links.find((link) => link.label === "LinkedIn")?.href ?? "#";
@@ -555,8 +556,10 @@ export default function Home() {
               <h1 className="name-gradient text-4xl font-semibold leading-tight sm:text-5xl">{profile.name}</h1>
               <p className="tagline-badge text-sm text-muted">{profile.tagline}</p>
               <div className="hero-personal-photos">
-                <span className="hero-photo-line hero-photo-line-left" aria-hidden="true" />
-                <span className="hero-photo-line hero-photo-line-right" aria-hidden="true" />
+                <svg className="hero-photo-connector" viewBox="0 0 100 40" aria-hidden="true">
+                  <line x1="50" y1="0" x2="33" y2="36" />
+                  <line x1="50" y1="0" x2="67" y2="36" />
+                </svg>
                 {homePhotos.map((photo, idx) => (
                   <figure key={photo.src} className={`hero-photo-chip ${idx === 0 ? "hero-photo-left" : "hero-photo-right"}`}>
                     <img
@@ -870,33 +873,38 @@ export default function Home() {
                   <>
                     <section className="spotify-strip-block">
                       <p className="spotify-panel-label">Top Artists</p>
-                      <ul className="spotify-artist-rail">
-                        {spotifyTopArtists.map((artist, index) => {
-                          const fallbackImage = getArtistFallbackImage(artist.name);
-                          const imageSrc = !spotifyBrokenImages[artist.id] ? artist.image ?? fallbackImage : fallbackImage;
-                          return (
-                            <li key={artist.id} className={`spotify-artist-slot spotify-artist-slot-${index + 1}`}>
-                              <a href={artist.url} target="_blank" rel="noreferrer" className="spotify-artist-pill">
-                                <span className="spotify-index">{index + 1}</span>
-                                {imageSrc ? (
-                                  <img
-                                    src={imageSrc}
-                                    alt={artist.name}
-                                    className="spotify-avatar"
-                                    referrerPolicy="no-referrer"
-                                    onError={() => setSpotifyBrokenImages((prev) => ({ ...prev, [artist.id]: true }))}
-                                  />
-                                ) : (
-                                  <span className="spotify-avatar spotify-avatar-fallback" aria-hidden="true">
-                                    {artist.name.charAt(0)}
-                                  </span>
-                                )}
-                                <span className="spotify-link truncate">{artist.name}</span>
-                              </a>
-                            </li>
-                          );
-                        })}
-                      </ul>
+                      <div className="spotify-artist-pyramid">
+                        {spotifyTopArtistsRows.map((row, rowIndex) => (
+                          <ul key={`artist-row-${rowIndex}`} className={`spotify-artist-row spotify-artist-row-${rowIndex + 1}`}>
+                            {row.map((artist, artistIndex) => {
+                              const fallbackImage = getArtistFallbackImage(artist.name);
+                              const imageSrc = !spotifyBrokenImages[artist.id] ? artist.image ?? fallbackImage : fallbackImage;
+                              const rank = rowIndex === 0 ? artistIndex + 1 : artistIndex + 4;
+                              return (
+                                <li key={artist.id}>
+                                  <a href={artist.url} target="_blank" rel="noreferrer" className="spotify-artist-pill">
+                                    <span className="spotify-index">{rank}</span>
+                                    {imageSrc ? (
+                                      <img
+                                        src={imageSrc}
+                                        alt={artist.name}
+                                        className="spotify-avatar"
+                                        referrerPolicy="no-referrer"
+                                        onError={() => setSpotifyBrokenImages((prev) => ({ ...prev, [artist.id]: true }))}
+                                      />
+                                    ) : (
+                                      <span className="spotify-avatar spotify-avatar-fallback" aria-hidden="true">
+                                        {artist.name.charAt(0)}
+                                      </span>
+                                    )}
+                                    <span className="spotify-link truncate">{artist.name}</span>
+                                  </a>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        ))}
+                      </div>
                     </section>
 
                     <section className="spotify-table-block">
