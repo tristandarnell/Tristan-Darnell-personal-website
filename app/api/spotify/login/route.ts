@@ -7,7 +7,7 @@ const SPOTIFY_SCOPE = "user-top-read user-read-private";
 export async function GET(request: NextRequest) {
   const config = getSpotifyConfig();
   if (!config) {
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL("/?spotify_error=missing_config", request.url));
   }
 
   const state = crypto.randomUUID();

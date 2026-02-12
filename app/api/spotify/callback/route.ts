@@ -21,10 +21,11 @@ export async function GET(request: NextRequest) {
   const state = request.nextUrl.searchParams.get("state");
   const expectedState = request.cookies.get(spotifyCookieNames.state)?.value;
   const response = NextResponse.redirect(new URL("/", request.url));
+  const failedResponse = NextResponse.redirect(new URL("/?spotify_error=auth_failed", request.url));
 
   if (!config || !code || !state || !expectedState || expectedState !== state) {
-    clearSpotifyCookies(response);
-    return response;
+    clearSpotifyCookies(failedResponse);
+    return failedResponse;
   }
 
   const redirectUri = getSpotifyRedirectUri(request);
@@ -36,8 +37,9 @@ export async function GET(request: NextRequest) {
   });
 
   if (!tokens) {
-    clearSpotifyCookies(response);
-    return response;
+    const tokenFailureResponse = NextResponse.redirect(new URL("/?spotify_error=token_exchange_failed", request.url));
+    clearSpotifyCookies(tokenFailureResponse);
+    return tokenFailureResponse;
   }
 
   const secure = getCookieSecurity(request);

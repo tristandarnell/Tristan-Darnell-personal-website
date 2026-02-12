@@ -49,6 +49,7 @@ export default function Home() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [spotifyData, setSpotifyData] = useState<SpotifyTopResponse | null>(null);
   const [spotifyLoading, setSpotifyLoading] = useState(true);
+  const [spotifyError, setSpotifyError] = useState<string | null>(null);
   const linkedinUrl = profile.links.find((link) => link.label === "LinkedIn")?.href ?? "#";
   const githubUrl = profile.links.find((link) => link.label === "GitHub")?.href ?? "#";
   const showImageSrc = (character: "arya" | "omar") => {
@@ -120,6 +121,13 @@ export default function Home() {
     return () => {
       active = false;
     };
+  }, []);
+
+  useEffect(() => {
+    const errorParam = new URLSearchParams(window.location.search).get("spotify_error");
+    if (errorParam) {
+      setSpotifyError(errorParam);
+    }
   }, []);
 
   return (
@@ -405,7 +413,13 @@ export default function Home() {
                   <p className="text-sm text-muted">Loading Spotify data...</p>
                 ) : !spotifyData?.connected ? (
                   <div className="space-y-3">
-                    <p className="text-sm text-muted">Connect Spotify to show your top artists and tracks.</p>
+                    <p className="text-sm text-muted">
+                      {spotifyError === "missing_config"
+                        ? "Spotify env vars are missing in this deployment."
+                        : spotifyError
+                          ? "Spotify auth failed. Check redirect URI and app settings, then try again."
+                          : "Connect Spotify to show your top artists and tracks."}
+                    </p>
                     <Button asChild>
                       <a href="/api/spotify/login">Connect Spotify</a>
                     </Button>
