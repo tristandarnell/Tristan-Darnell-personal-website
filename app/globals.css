@@ -69,12 +69,42 @@ body {
     hsl(var(--background));
   color: hsl(var(--foreground));
   min-height: 100vh;
-  font-family: var(--font-sora), var(--font-grotesk), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body), system-ui, -apple-system, sans-serif;
   line-height: 1.6;
+  font-feature-settings: "cv05" 1, "cv11" 1;
+  text-rendering: optimizeLegibility;
 }
 
 img {
   max-width: 100%;
+}
+
+h1,
+h2,
+h3,
+.section-title,
+.name-gradient,
+.spotify-title,
+.hero-shows-heading {
+  font-family: var(--font-display), var(--font-body), system-ui, -apple-system, sans-serif;
+}
+
+.pill,
+.spotify-panel-label,
+.spotify-table-head,
+.hero-show-label,
+.spotify-index {
+  font-family:
+    var(--font-mono),
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    "Liberation Mono",
+    "Courier New",
+    monospace;
+  letter-spacing: 0.08em;
 }
 
 .dark body {
