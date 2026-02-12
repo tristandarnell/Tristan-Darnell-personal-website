@@ -47,7 +47,7 @@ type SpotifyClientCache = {
   data: SpotifyTopResponse;
 };
 
-const SPOTIFY_CLIENT_CACHE_KEY = "spotify_top_cache_v1";
+const SPOTIFY_CLIENT_CACHE_KEY = "spotify_top_cache_v2";
 const SPOTIFY_CLIENT_CACHE_TTL_MS = 1000 * 60 * 30;
 
 function hasSpotifyRows(data: SpotifyTopResponse | null | undefined) {
@@ -96,8 +96,11 @@ function formatSpotifyReason(reason?: string): string {
 export default function Home() {
   const [showImageErrors, setShowImageErrors] = useState({ arya: false, omar: false });
   const homePhotos = media.personalPhotos.slice(2);
+  const photographyPreview = media.personalPhotos.slice(0, 2);
   const homePhotoFallbacks = ["/images/profile-portrait.svg", "/images/profile-campus.svg"];
+  const photographyPreviewFallback = "/images/hero-preview.svg";
   const [homePhotoErrors, setHomePhotoErrors] = useState<boolean[]>(homePhotos.map(() => false));
+  const [photographyPreviewErrors, setPhotographyPreviewErrors] = useState<boolean[]>(photographyPreview.map(() => false));
   const [menuOpen, setMenuOpen] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [spotifyData, setSpotifyData] = useState<SpotifyTopResponse | null>(null);
@@ -120,6 +123,11 @@ export default function Home() {
   const homePhotoSrc = (idx: number) => (homePhotoErrors[idx] ? homePhotoFallbacks[idx] : homePhotos[idx].src);
   const onHomePhotoError = (idx: number) => {
     setHomePhotoErrors((prev) => prev.map((value, i) => (i === idx ? true : value)));
+  };
+  const photographyPreviewSrc = (idx: number) =>
+    photographyPreviewErrors[idx] ? photographyPreviewFallback : photographyPreview[idx].src;
+  const onPhotographyPreviewError = (idx: number) => {
+    setPhotographyPreviewErrors((prev) => prev.map((value, i) => (i === idx ? true : value)));
   };
   const toggleTheme = () => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
@@ -646,12 +654,25 @@ export default function Home() {
                 )}
               </CardContent>
             </Card>
-            <Card className="photo-card min-w-0 p-5">
+            <Card className="photo-card photo-cta-card min-w-0 p-5">
               <CardHeader className="p-0 pb-4">
                 <CardTitle className="text-2xl text-slate-900">Photography</CardTitle>
+                <CardDescription className="text-base text-muted">A few film and landscape shots from my collection.</CardDescription>
               </CardHeader>
-              <CardContent className="p-0">
-                <Button asChild variant="ghost">
+              <CardContent className="photo-cta-content p-0">
+                <div className="photo-cta-grid" aria-hidden="true">
+                  {photographyPreview.map((photo, idx) => (
+                    <figure key={photo.src} className="photo-cta-tile">
+                      <img
+                        src={photographyPreviewSrc(idx)}
+                        alt=""
+                        className="photo-cta-image"
+                        onError={() => onPhotographyPreviewError(idx)}
+                      />
+                    </figure>
+                  ))}
+                </div>
+                <Button asChild variant="ghost" className="photo-cta-link">
                   <a href="/photos">View Photography 📸</a>
                 </Button>
               </CardContent>

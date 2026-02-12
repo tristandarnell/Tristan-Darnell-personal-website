@@ -267,6 +267,9 @@ a {
 .dark .photo-card {
   border-color: rgba(59, 130, 246, 0.35);
   background: linear-gradient(160deg, rgba(30, 41, 59, 0.86), rgba(15, 23, 42, 0.74));
+  box-shadow:
+    0 14px 30px rgba(2, 6, 23, 0.44),
+    inset 0 1px 0 rgba(96, 165, 250, 0.1);
 }
 
 .header-icon-btn {
@@ -675,6 +678,9 @@ a {
 .dark .site-main > section::before {
   border-color: rgba(59, 130, 246, 0.26);
   background: linear-gradient(160deg, rgba(30, 41, 59, 0.48), rgba(15, 23, 42, 0.26));
+  box-shadow:
+    0 16px 34px rgba(2, 6, 23, 0.42),
+    inset 0 1px 0 rgba(96, 165, 250, 0.08);
 }
 
 .dark .site-main > section:nth-child(2n)::before {
@@ -749,6 +755,47 @@ a {
 
 .personality-layout {
   grid-template-columns: minmax(0, 1fr);
+}
+
+.photo-cta-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.photo-cta-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.9rem;
+  min-height: 0;
+}
+
+.photo-cta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.photo-cta-tile {
+  margin: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(147, 197, 253, 0.65);
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.photo-cta-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-cta-link {
+  width: 100%;
 }
 
 .spotify-state {
@@ -990,6 +1037,14 @@ a {
   background:
     linear-gradient(145deg, rgba(9, 25, 55, 0.96), rgba(11, 36, 77, 0.9) 52%, rgba(8, 25, 60, 0.86)),
     radial-gradient(circle at 84% 15%, rgba(56, 189, 248, 0.15), transparent 45%);
+  box-shadow:
+    0 18px 36px rgba(2, 6, 23, 0.48),
+    inset 0 1px 0 rgba(125, 211, 252, 0.1);
+}
+
+.dark .photo-cta-tile {
+  border-color: rgba(59, 130, 246, 0.46);
+  background: rgba(15, 23, 42, 0.8);
 }
 
 .dark .spotify-state {
@@ -1155,9 +1210,10 @@ a {
   }
 }
 
-@media (min-width: 1700px) {
+@media (min-width: 1200px) {
   .personality-layout {
     grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
+    align-items: stretch;
   }
 }
 
@@ -1226,6 +1282,10 @@ a {
     white-space: normal;
     text-overflow: clip;
     font-size: 0.78rem;
+  }
+
+  .photo-cta-grid {
+    gap: 0.5rem;
   }
 }
 
