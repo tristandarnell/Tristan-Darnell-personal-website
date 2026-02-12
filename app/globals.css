@@ -624,7 +624,7 @@ a {
 
 .hero-shows-box {
   width: 100%;
-  grid-column: 1 / -1;
+  grid-area: shows;
   display: grid;
   gap: 0.14rem;
   justify-items: stretch;
@@ -640,7 +640,10 @@ a {
 .hero-media-grid {
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+  grid-template-areas:
+    "shows shows"
+    "books podcasts";
   gap: 0.22rem;
   align-items: start;
 }
@@ -652,17 +655,18 @@ a {
   border-radius: 8px;
   border: 1px solid rgba(147, 197, 253, 0.64);
   background: rgba(255, 255, 255, 0.84);
-  padding: 0.16rem;
+  padding: 0.22rem;
 }
 
 .hero-media-group-podcasts {
-  width: fit-content;
-  max-width: 100%;
-  justify-self: center;
+  grid-area: podcasts;
+  width: 100%;
+  max-width: none;
+  justify-self: stretch;
 }
 
 .hero-media-heading {
-  margin: 0 0 0.12rem;
+  margin: 0 0 0.16rem;
   display: inline-flex;
   align-items: center;
   gap: 0.15rem;
@@ -681,11 +685,11 @@ a {
 
 .hero-media-covers {
   display: grid;
-  gap: 0.14rem;
+  gap: 0.18rem;
 }
 
 .hero-media-group-books .hero-media-covers {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .hero-media-group-podcasts .hero-media-covers {
@@ -695,12 +699,12 @@ a {
 
 .hero-media-group-podcasts .hero-media-cover {
   width: auto;
-  max-width: 88px;
+  max-width: 96px;
   justify-self: center;
 }
 
 .hero-media-group-books-wide {
-  grid-column: auto;
+  grid-area: books;
 }
 
 .hero-media-cover {
@@ -1671,12 +1675,15 @@ a {
 
   .hero-media-grid {
     width: min(100%, 350px);
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    grid-template-areas:
+      "shows shows"
+      "books podcasts";
     gap: 0.22rem;
   }
 
   .hero-media-group-books-wide {
-    grid-column: auto;
+    grid-area: books;
   }
 }
 
@@ -1775,12 +1782,16 @@ a {
 
   .hero-media-grid {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "shows"
+      "podcasts"
+      "books";
     width: min(100%, 286px);
     gap: 0.22rem;
   }
 
   .hero-media-group-books-wide {
-    grid-column: auto;
+    grid-area: books;
   }
 
   .hero-media-group-books .hero-media-covers {
