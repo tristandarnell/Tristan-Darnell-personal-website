@@ -233,7 +233,11 @@ export default function Home() {
       )
     );
 
-    revealTargets.forEach((el) => el.classList.add("reveal-on-scroll"));
+    revealTargets.forEach((el, index) => {
+      el.classList.add("reveal-on-scroll");
+      const delayMs = Math.min(index * 34, 260);
+      el.style.setProperty("--reveal-delay", `${delayMs}ms`);
+    });
     if (reduceMotion) {
       revealTargets.forEach((el) => el.classList.add("is-visible"));
       return;
@@ -580,7 +584,7 @@ export default function Home() {
             {projects.map((project, index) => {
               const Icon = projectIcons[index % projectIcons.length];
               return (
-                <Card key={project.title} className="photo-card border-blue-100">
+                <Card key={project.title} className="photo-card project-card border-blue-100">
                   <CardHeader className="gap-2">
                     <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
                       <Icon className="h-5 w-5" />
