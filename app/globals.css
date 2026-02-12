@@ -522,6 +522,33 @@ a {
   box-shadow: 0 4px 10px rgba(56, 189, 248, 0.12);
 }
 
+.entry-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.entry-link-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 211, 252, 0.68);
+  background: rgba(224, 242, 254, 0.6);
+  padding: 0.24rem 0.56rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #1d4ed8;
+  transition: all 0.2s ease;
+}
+
+.entry-link-chip:hover {
+  border-color: rgba(59, 130, 246, 0.88);
+  background: rgba(191, 219, 254, 0.72);
+  color: #1e40af;
+  transform: translateY(-1px);
+}
+
 .skill-chip {
   display: inline-flex;
   align-items: center;
@@ -662,8 +689,7 @@ a {
   margin: 0;
   min-width: 0;
   flex: 1;
-  display: grid;
-  gap: 0.18rem;
+  display: block;
 }
 
 .hero-media-cover-podcast {
@@ -682,14 +708,6 @@ a {
 
 .hero-media-cover-podcast .hero-media-cover-img {
   aspect-ratio: 1 / 1;
-}
-
-.hero-media-caption {
-  margin: 0;
-  font-size: 0.56rem;
-  line-height: 1.2;
-  color: #0f172a;
-  text-align: center;
 }
 
 .hero-shows-heading {
@@ -841,10 +859,6 @@ a {
 .dark .hero-media-cover-img {
   border-color: rgba(96, 165, 250, 0.46);
   background: rgba(15, 23, 42, 0.72);
-}
-
-.dark .hero-media-caption {
-  color: #dbeafe;
 }
 
 .dark .hero-show-label {
@@ -1043,6 +1057,18 @@ a {
   background: rgba(30, 41, 59, 0.78);
   border-color: rgba(96, 165, 250, 0.62);
   color: #e2e8f0;
+}
+
+.dark .entry-link-chip {
+  border-color: rgba(96, 165, 250, 0.58);
+  background: rgba(15, 23, 42, 0.6);
+  color: #bfdbfe;
+}
+
+.dark .entry-link-chip:hover {
+  border-color: rgba(147, 197, 253, 0.9);
+  background: rgba(30, 58, 138, 0.4);
+  color: #dbeafe;
 }
 
 .dark .skill-chip-icon {
@@ -1642,11 +1668,6 @@ a {
     --hero-show-size: clamp(146px, 20vw, 206px);
     gap: 0.6rem;
   }
-
-  .hero-media-caption {
-    font-size: 0.53rem;
-  }
-}
 
 @media (max-width: 960px) {
   .hero-section {

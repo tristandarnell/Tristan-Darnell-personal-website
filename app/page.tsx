@@ -604,7 +604,6 @@ export default function Home() {
                     {media.favoriteBooks.map((book) => (
                       <figure key={book.title} className="hero-media-cover">
                         <img src={book.cover} alt={book.title} className="hero-media-cover-img" />
-                        <figcaption className="hero-media-caption">{book.title}</figcaption>
                       </figure>
                     ))}
                   </div>
@@ -618,7 +617,6 @@ export default function Home() {
                     {media.favoritePodcasts.map((podcast) => (
                       <figure key={podcast.title} className="hero-media-cover hero-media-cover-podcast">
                         <img src={podcast.cover} alt={podcast.title} className="hero-media-cover-img" />
-                        <figcaption className="hero-media-caption">{podcast.title}</figcaption>
                       </figure>
                     ))}
                   </div>
@@ -633,30 +631,32 @@ export default function Home() {
             <h2 className="section-title text-3xl font-semibold text-slate-900">Experience</h2>
           </div>
           <div className="experience-timeline relative ml-2 border-l border-blue-100 pl-7">
-            {experience.map((item) => (
-              <div key={item.role} className="relative mb-5 rounded-2xl border border-blue-100 bg-white p-5 shadow-soft last:mb-0">
-                <span className="absolute -left-[34px] top-6 h-3.5 w-3.5 rounded-full bg-primary" />
-                <p className="text-xs uppercase tracking-[0.12em] text-blue-700">{item.dates}</p>
-                <h3 className="mt-1 text-xl font-semibold text-slate-900">{item.role}</h3>
-                <p className="text-sm text-muted">{item.org}</p>
-                <ul className="mt-3 space-y-2 text-sm text-muted">
-                  {item.bullets.map((bullet) => (
-                    <li key={bullet}>{bullet}</li>
-                  ))}
-                </ul>
-                {item.orgUrl ? (
-                  <a
-                    href={item.orgUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-700 transition-colors hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200"
-                  >
-                    Visit {item.org}
-                    <span aria-hidden="true">↗</span>
-                  </a>
-                ) : null}
-              </div>
-            ))}
+            {experience.map((item) => {
+              const itemLinks = item.links?.length ? item.links : item.orgUrl ? [{ label: item.org, href: item.orgUrl }] : [];
+              return (
+                <div key={item.role} className="relative mb-5 rounded-2xl border border-blue-100 bg-white p-5 shadow-soft last:mb-0">
+                  <span className="absolute -left-[34px] top-6 h-3.5 w-3.5 rounded-full bg-primary" />
+                  <p className="text-xs uppercase tracking-[0.12em] text-blue-700">{item.dates}</p>
+                  <h3 className="mt-1 text-xl font-semibold text-slate-900">{item.role}</h3>
+                  <p className="text-sm text-muted">{item.org}</p>
+                  <ul className="mt-3 space-y-2 text-sm text-muted">
+                    {item.bullets.map((bullet) => (
+                      <li key={bullet}>{bullet}</li>
+                    ))}
+                  </ul>
+                  {itemLinks.length ? (
+                    <div className="entry-links mt-3">
+                      {itemLinks.map((link) => (
+                        <a key={link.href} href={link.href} target="_blank" rel="noreferrer" className="entry-link-chip">
+                          {link.label}
+                          <span aria-hidden="true">↗</span>
+                        </a>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
         </section>
 
@@ -671,6 +671,21 @@ export default function Home() {
           <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
             {projects.map((project, index) => {
               const Icon = projectIcons[index % projectIcons.length];
+              const projectLinks = [
+                project.proofUrl
+                  ? {
+                      href: project.proofUrl,
+                      label: project.proofLabel ?? "View write-up"
+                    }
+                  : null,
+                project.repoUrl
+                  ? {
+                      href: project.repoUrl,
+                      label: "View on GitHub",
+                      withGithubIcon: true
+                    }
+                  : null
+              ].filter((link): link is { href: string; label: string; withGithubIcon?: boolean } => Boolean(link));
               return (
                 <Card key={project.title} className="photo-card project-card border-blue-100">
                   <CardHeader className="gap-2">
@@ -704,32 +719,19 @@ export default function Home() {
                         <li key={item}>{item}</li>
                       ))}
                     </ul>
-                    <div className="flex flex-wrap items-center gap-3">
-                      {project.proofUrl ? (
-                        <a
-                          href={project.proofUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-sm font-semibold text-blue-700 transition-colors hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200"
-                        >
-                          {project.proofLabel ?? "View write-up"}
-                          <span aria-hidden="true">↗</span>
-                        </a>
-                      ) : (
-                        <span className="text-sm text-muted">Write-up available on request.</span>
-                      )}
-                      {project.repoUrl ? (
-                        <a
-                          href={project.repoUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-sm font-semibold text-blue-700 transition-colors hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200"
-                        >
-                          <Github className="h-4 w-4" />
-                          View on GitHub
-                        </a>
-                      ) : null}
-                    </div>
+                    {projectLinks.length ? (
+                      <div className="entry-links">
+                        {projectLinks.map((link) => (
+                          <a key={link.href} href={link.href} target="_blank" rel="noreferrer" className="entry-link-chip">
+                            {link.withGithubIcon ? <Github className="h-3.5 w-3.5" /> : null}
+                            {link.label}
+                            <span aria-hidden="true">↗</span>
+                          </a>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted">Write-up available on request.</span>
+                    )}
                   </CardContent>
                 </Card>
               );
