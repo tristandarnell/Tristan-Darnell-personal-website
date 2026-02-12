@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { ArrowLeft, Moon, Sun } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { media, profile } from "@/content/resume";
 
@@ -59,7 +58,6 @@ export default function PhotosPage() {
 
       <main className="section gap-8 pt-10">
         <div className="section-heading">
-          <Badge className="w-fit">Photos</Badge>
           <h1 className="section-title text-4xl font-semibold text-slate-900">Photos</h1>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

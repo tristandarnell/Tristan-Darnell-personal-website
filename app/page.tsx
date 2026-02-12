@@ -183,25 +183,6 @@ export default function Home() {
 
       <main className="site-main space-y-16 pb-20 pt-10 md:space-y-20 md:pt-14">
         <section className="section hero-section gap-6">
-          <div className="hero-float-layer" aria-hidden="true">
-            <div className="hero-shows-block">
-              <p className="hero-shows-heading">Favorite Shows</p>
-              <div className="hero-shows-grid">
-                <div className="hero-show-item hero-show-item-arya">
-                  <div className="hero-float">
-                    <img src={showImageSrc("arya")} alt="" onError={() => onShowImageError("arya")} className="hero-float-base" />
-                  </div>
-                  <p className="hero-show-label">Game of Thrones</p>
-                </div>
-                <div className="hero-show-item hero-show-item-omar">
-                  <div className="hero-float">
-                    <img src={showImageSrc("omar")} alt="" onError={() => onShowImageError("omar")} className="hero-float-base" />
-                  </div>
-                  <p className="hero-show-label">The Wire</p>
-                </div>
-              </div>
-            </div>
-          </div>
           <div className="max-w-3xl">
             <div className="flex flex-col justify-center gap-6">
               <Badge variant="glow" className="w-fit">
@@ -246,6 +227,25 @@ export default function Home() {
                   </span>
                   <span className="tag-chip rounded-full px-2 py-0.5">Email</span>
                 </a>
+              </div>
+            </div>
+          </div>
+          <div className="hero-float-layer" aria-hidden="true">
+            <div className="hero-shows-block">
+              <p className="hero-shows-heading">Favorite Shows</p>
+              <div className="hero-shows-grid">
+                <div className="hero-show-item hero-show-item-arya">
+                  <div className="hero-float">
+                    <img src={showImageSrc("arya")} alt="" onError={() => onShowImageError("arya")} className="hero-float-base" />
+                  </div>
+                  <p className="hero-show-label">Game of Thrones</p>
+                </div>
+                <div className="hero-show-item hero-show-item-omar">
+                  <div className="hero-float">
+                    <img src={showImageSrc("omar")} alt="" onError={() => onShowImageError("omar")} className="hero-float-base" />
+                  </div>
+                  <p className="hero-show-label">The Wire</p>
+                </div>
               </div>
             </div>
           </div>

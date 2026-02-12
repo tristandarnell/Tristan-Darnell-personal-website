@@ -1059,7 +1059,7 @@ a {
   .hero-float-layer {
     position: static;
     inset: auto;
-    margin-bottom: 0.55rem;
+    margin-top: 0.55rem;
   }
 
   .hero-shows-block {
