@@ -34,6 +34,8 @@ type SpotifyTopResponse = {
   connected: boolean;
   artists: SpotifyArtist[];
   tracks: SpotifyTrack[];
+  reason?: string;
+  mode?: "owner" | "cookie" | "none";
   profile: {
     displayName: string;
     url: string;
@@ -404,7 +406,10 @@ export default function Home() {
                 {spotifyLoading ? (
                   <p className="spotify-state">Loading Spotify data...</p>
                 ) : !spotifyData?.connected ? (
-                  <p className="spotify-state">Spotify data is unavailable right now. Check back shortly.</p>
+                  <p className="spotify-state">
+                    Spotify data is unavailable right now. Check back shortly.
+                    {spotifyData?.reason ? ` (${spotifyData.reason.replaceAll("_", " ")})` : ""}
+                  </p>
                 ) : (
                   <>
                     <section className="spotify-strip-block">

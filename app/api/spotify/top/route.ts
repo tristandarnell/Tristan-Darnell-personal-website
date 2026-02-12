@@ -9,14 +9,28 @@ import {
   type SpotifyTopPayload
 } from "@/lib/spotify";
 
-const EMPTY_RESPONSE: SpotifyTopPayload = {
+type TopRoutePayload = SpotifyTopPayload & {
+  reason?: string;
+  mode?: "owner" | "cookie" | "none";
+};
+
+const EMPTY_RESPONSE: TopRoutePayload = {
   connected: false,
   artists: [],
   tracks: [],
-  profile: null
+  profile: null,
+  mode: "none"
 };
 
-function responseWithPayload(payload: SpotifyTopPayload) {
+function disconnected(reason: string, mode: TopRoutePayload["mode"] = "none"): TopRoutePayload {
+  return {
+    ...EMPTY_RESPONSE,
+    reason,
+    mode
+  };
+}
+
+function responseWithPayload(payload: TopRoutePayload) {
   return NextResponse.json(payload, {
     headers: {
       "Cache-Control": "no-store"
@@ -84,13 +98,21 @@ function attachTokenCookies(
 
 export async function GET(request: NextRequest) {
   const ownerRefreshToken = process.env.SPOTIFY_REFRESH_TOKEN?.trim();
+  let ownerFailureReason: string | null = null;
   if (ownerRefreshToken) {
     const ownerTokenData = await refreshIfPossible(request, ownerRefreshToken);
     if (!ownerTokenData) {
-      return responseWithPayload(EMPTY_RESPONSE);
+      ownerFailureReason = "owner_refresh_failed";
+    } else {
+      const ownerPayload = await fetchSpotifyTopData(ownerTokenData.accessToken);
+      if (ownerPayload) {
+        return responseWithPayload({
+          ...ownerPayload,
+          mode: "owner"
+        });
+      }
+      ownerFailureReason = "owner_fetch_failed";
     }
-    const ownerPayload = await fetchSpotifyTopData(ownerTokenData.accessToken);
-    return responseWithPayload(ownerPayload ?? EMPTY_RESPONSE);
   }
 
   let accessToken = request.cookies.get(spotifyCookieNames.accessToken)?.value ?? null;
@@ -111,13 +133,13 @@ export async function GET(request: NextRequest) {
 
   if (shouldRefresh) {
     if (!refreshToken) {
-      const response = responseWithPayload(EMPTY_RESPONSE);
+      const response = responseWithPayload(disconnected(ownerFailureReason ?? "no_refresh_token", "none"));
       clearSpotifyCookies(response);
       return response;
     }
     refreshedCookieData = await refreshIfPossible(request, refreshToken);
     if (!refreshedCookieData) {
-      const response = responseWithPayload(EMPTY_RESPONSE);
+      const response = responseWithPayload(disconnected(ownerFailureReason ?? "cookie_refresh_failed", "none"));
       clearSpotifyCookies(response);
       return response;
     }
@@ -125,7 +147,7 @@ export async function GET(request: NextRequest) {
   }
 
   if (!accessToken) {
-    const response = responseWithPayload(EMPTY_RESPONSE);
+    const response = responseWithPayload(disconnected(ownerFailureReason ?? "no_access_token", "none"));
     clearSpotifyCookies(response);
     return response;
   }
@@ -133,28 +155,34 @@ export async function GET(request: NextRequest) {
   const payload = await fetchSpotifyTopData(accessToken);
   if (!payload) {
     if (!refreshToken) {
-      const response = responseWithPayload(EMPTY_RESPONSE);
+      const response = responseWithPayload(disconnected(ownerFailureReason ?? "cookie_fetch_failed", "none"));
       clearSpotifyCookies(response);
       return response;
     }
     refreshedCookieData = await refreshIfPossible(request, refreshToken);
     if (!refreshedCookieData) {
-      const response = responseWithPayload(EMPTY_RESPONSE);
+      const response = responseWithPayload(disconnected(ownerFailureReason ?? "cookie_refresh_failed", "none"));
       clearSpotifyCookies(response);
       return response;
     }
     const retried = await fetchSpotifyTopData(refreshedCookieData.accessToken);
     if (!retried) {
-      const response = responseWithPayload(EMPTY_RESPONSE);
+      const response = responseWithPayload(disconnected(ownerFailureReason ?? "cookie_fetch_failed", "none"));
       clearSpotifyCookies(response);
       return response;
     }
-    const response = responseWithPayload(retried);
+    const response = responseWithPayload({
+      ...retried,
+      mode: "cookie"
+    });
     attachTokenCookies(response, refreshedCookieData);
     return response;
   }
 
-  const response = responseWithPayload(payload);
+  const response = responseWithPayload({
+    ...payload,
+    mode: "cookie"
+  });
   if (refreshedCookieData) {
     attachTokenCookies(response, refreshedCookieData);
   }
