@@ -126,6 +126,8 @@ a {
   @apply container flex flex-col gap-9;
   position: relative;
   z-index: 1;
+  padding-top: clamp(0.8rem, 1.2vw, 1.1rem);
+  padding-bottom: clamp(0.45rem, 0.8vw, 0.7rem);
 }
 
 .section > * {
@@ -573,6 +575,7 @@ a {
 
 .hero-section {
   overflow: visible;
+  padding-top: clamp(1rem, 1.45vw, 1.3rem);
   padding-bottom: 54px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(248px, 360px);
@@ -1627,6 +1630,7 @@ a {
 
 @media (max-width: 1360px) {
   .hero-section {
+    padding-top: 0.9rem;
     padding-bottom: 32px;
     grid-template-columns: 1fr;
   }
@@ -1752,6 +1756,7 @@ a {
 
 @media (max-width: 960px) {
   .hero-section {
+    padding-top: 0.75rem;
     padding-bottom: 22px;
   }
 
