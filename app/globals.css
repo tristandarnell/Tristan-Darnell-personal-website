@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 :root {
+  --scroll-progress: 0;
+  --scroll-parallax: 0px;
+  --scroll-parallax-soft: 0px;
   --background: 208 78% 98%;
   --foreground: 222 47% 11%;
   --card: 0 0% 100%;
@@ -98,6 +101,23 @@ a {
   @apply flex flex-col gap-2;
 }
 
+.scroll-effects-ready .reveal-on-scroll {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0) scale(0.992);
+  filter: saturate(0.9);
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.5s ease;
+  will-change: transform, opacity;
+}
+
+.scroll-effects-ready .reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: none;
+}
+
 .pill {
   @apply inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-muted;
 }
@@ -126,6 +146,20 @@ a {
   position: relative;
 }
 
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 80;
+  pointer-events: none;
+  transform-origin: 0 50%;
+  transform: scaleX(var(--scroll-progress));
+  background: linear-gradient(90deg, rgba(14, 165, 233, 0.95), rgba(37, 99, 235, 0.95), rgba(96, 165, 250, 0.95));
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.44);
+}
+
 .playful-shell::before {
   content: "";
   position: absolute;
@@ -135,6 +169,7 @@ a {
   height: 120px;
   border-radius: 999px;
   background: radial-gradient(circle, rgba(56, 189, 248, 0.2), rgba(56, 189, 248, 0));
+  transform: translate3d(0, calc(var(--scroll-parallax) * -0.28), 0);
   pointer-events: none;
 }
 
@@ -147,6 +182,7 @@ a {
   height: 104px;
   border-radius: 999px;
   background: radial-gradient(circle, rgba(251, 191, 36, 0.16), rgba(251, 191, 36, 0));
+  transform: translate3d(0, calc(var(--scroll-parallax-soft) * -0.4), 0);
   pointer-events: none;
 }
 
@@ -158,6 +194,7 @@ a {
   background: linear-gradient(160deg, rgba(255, 255, 255, 0.52), rgba(239, 246, 255, 0.34));
   border: 1px solid rgba(186, 230, 253, 0.48);
   z-index: -1;
+  transform: translate3d(0, calc(var(--scroll-parallax-soft) * -0.08), 0);
   pointer-events: none;
 }
 
@@ -1209,6 +1246,22 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .scroll-progress {
+    display: none;
+  }
+
+  .scroll-effects-ready .reveal-on-scroll,
+  .scroll-effects-ready .reveal-on-scroll.is-visible {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+
   .hero-float,
   .hero-float-part,
   .photo-polaroid {

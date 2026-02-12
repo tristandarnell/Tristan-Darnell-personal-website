@@ -103,6 +103,8 @@ export default function Home() {
   const [spotifyData, setSpotifyData] = useState<SpotifyTopResponse | null>(null);
   const [spotifyLoading, setSpotifyLoading] = useState(true);
   const spotifyDisplayData = hasSpotifyRows(spotifyData) ? spotifyData : null;
+  const spotifyArtistCount = spotifyDisplayData?.artists.length ?? 0;
+  const spotifyTrackCount = spotifyDisplayData?.tracks.length ?? 0;
   const linkedinUrl = profile.links.find((link) => link.label === "LinkedIn")?.href ?? "#";
   const githubUrl = profile.links.find((link) => link.label === "GitHub")?.href ?? "#";
   const showImageSrc = (character: "arya" | "omar") => {
@@ -147,6 +149,83 @@ export default function Home() {
       window.removeEventListener("keydown", onEsc);
     };
   }, [menuOpen]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    let rafId = 0;
+    const updateScrollMetrics = () => {
+      rafId = 0;
+      const scrollTop = window.scrollY || root.scrollTop || 0;
+      const maxScrollable = Math.max(1, root.scrollHeight - window.innerHeight);
+      const progress = Math.min(1, scrollTop / maxScrollable);
+      root.style.setProperty("--scroll-progress", progress.toFixed(4));
+      root.style.setProperty("--scroll-parallax", `${(scrollTop * 0.08).toFixed(2)}px`);
+      root.style.setProperty("--scroll-parallax-soft", `${(scrollTop * 0.045).toFixed(2)}px`);
+    };
+
+    const onScroll = () => {
+      if (rafId) {
+        return;
+      }
+      rafId = window.requestAnimationFrame(updateScrollMetrics);
+    };
+
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+
+    return () => {
+      if (rafId) {
+        window.cancelAnimationFrame(rafId);
+      }
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const revealTargets = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        ".section, .photo-card, .highlight-card, .hero-photo-chip, .hero-show-item, .spotify-artist-pill, .spotify-table-row"
+      )
+    );
+
+    revealTargets.forEach((el) => el.classList.add("reveal-on-scroll"));
+    if (reduceMotion) {
+      revealTargets.forEach((el) => el.classList.add("is-visible"));
+      return;
+    }
+
+    document.documentElement.classList.add("scroll-effects-ready");
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) {
+            return;
+          }
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        });
+      },
+      {
+        threshold: 0.16,
+        rootMargin: "0px 0px -8% 0px"
+      }
+    );
+
+    revealTargets.forEach((el) => {
+      if (el.classList.contains("is-visible")) {
+        return;
+      }
+      observer.observe(el);
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [spotifyArtistCount, spotifyTrackCount]);
 
   useEffect(() => {
     let active = true;
@@ -225,6 +304,7 @@ export default function Home() {
 
   return (
     <div className="playful-shell relative min-h-screen">
+      <div className="scroll-progress" aria-hidden="true" />
       <header className="playful-header sticky top-0 z-50 border-b border-border/90 backdrop-blur">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-3">
