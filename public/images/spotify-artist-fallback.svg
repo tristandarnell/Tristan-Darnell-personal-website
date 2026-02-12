@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Spotify artist fallback">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1d4ed8" />
+      <stop offset="100%" stop-color="#0ea5e9" />
+    </linearGradient>
+  </defs>
+  <circle cx="48" cy="48" r="46" fill="url(#bg)" />
+  <circle cx="48" cy="48" r="45" fill="none" stroke="#93c5fd" stroke-opacity=".45" stroke-width="2" />
+  <path
+    d="M35 31v36m0 0c0-4 4-7 9-7s9 3 9 7-4 7-9 7-9-3-9-7Zm26-32v25m0 0c0-4 4-7 9-7s9 3 9 7-4 7-9 7-9-3-9-7Zm0-25 17-4"
+    fill="none"
+    stroke="#e0f2fe"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="4"
+  />
+</svg>

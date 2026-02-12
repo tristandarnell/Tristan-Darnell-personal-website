@@ -575,9 +575,9 @@ a {
   overflow: visible;
   padding-bottom: 54px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 430px);
+  grid-template-columns: minmax(0, 1fr) minmax(248px, 360px);
   align-items: start;
-  gap: clamp(0.6rem, 1.4vw, 0.9rem);
+  gap: clamp(0.45rem, 1vw, 0.75rem);
 }
 
 .hero-section > .max-w-3xl {
@@ -602,9 +602,9 @@ a {
   top: auto;
   right: auto;
   bottom: auto;
-  width: min(100%, 410px);
+  width: min(100%, 350px);
   display: grid;
-  gap: 0.28rem;
+  gap: 0.22rem;
   align-items: center;
   justify-items: center;
   text-align: center;
@@ -615,19 +615,19 @@ a {
 .hero-shows-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.36rem;
+  gap: 0.24rem;
   width: 100%;
 }
 
 .hero-shows-box {
   width: 100%;
   display: grid;
-  gap: 0.2rem;
+  gap: 0.14rem;
   justify-items: stretch;
-  border-radius: 11px;
+  border-radius: 10px;
   border: 1px solid rgba(147, 197, 253, 0.64);
   background: rgba(255, 255, 255, 0.84);
-  padding: 0.24rem;
+  padding: 0.18rem;
   box-shadow:
     0 8px 18px rgba(37, 99, 235, 0.09),
     inset 0 1px 0 rgba(255, 255, 255, 0.72);
@@ -637,7 +637,7 @@ a {
   width: 100%;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.3rem;
+  gap: 0.22rem;
   align-items: start;
 }
 
@@ -645,19 +645,19 @@ a {
   min-width: 0;
   width: 100%;
   overflow: hidden;
-  border-radius: 9px;
+  border-radius: 8px;
   border: 1px solid rgba(147, 197, 253, 0.64);
   background: rgba(255, 255, 255, 0.84);
-  padding: 0.22rem;
+  padding: 0.16rem;
 }
 
 .hero-media-heading {
-  margin: 0 0 0.16rem;
+  margin: 0 0 0.12rem;
   display: inline-flex;
   align-items: center;
-  gap: 0.2rem;
+  gap: 0.15rem;
   color: #1e3a8a;
-  font-size: 0.54rem;
+  font-size: 0.5rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.07em;
@@ -666,12 +666,12 @@ a {
 .hero-media-heading-shows {
   margin-bottom: 0.04rem;
   justify-content: center;
-  font-size: 0.56rem;
+  font-size: 0.52rem;
 }
 
 .hero-media-covers {
   display: grid;
-  gap: 0.2rem;
+  gap: 0.14rem;
 }
 
 .hero-media-group-books .hero-media-covers {
@@ -684,7 +684,7 @@ a {
 
 .hero-media-group-podcasts .hero-media-cover {
   width: 100%;
-  max-width: 96px;
+  max-width: 82px;
   justify-self: center;
 }
 
@@ -705,7 +705,7 @@ a {
 .hero-media-cover-img {
   display: block;
   width: 100%;
-  border-radius: 6px;
+  border-radius: 5px;
   border: 1px solid rgba(147, 197, 253, 0.72);
   background: rgba(224, 242, 254, 0.5);
   object-fit: cover;
@@ -719,12 +719,12 @@ a {
 .hero-shows-heading {
   position: static;
   margin: 0;
-  padding: 0.18rem 0.48rem;
+  padding: 0.14rem 0.42rem;
   border-radius: 999px;
   border: 1px solid rgba(191, 219, 254, 0.9);
   background: linear-gradient(140deg, rgba(224, 242, 254, 0.98), rgba(186, 230, 253, 0.84), rgba(253, 230, 138, 0.72));
   color: #0f172a;
-  font-size: clamp(0.68rem, 0.86vw, 0.8rem);
+  font-size: clamp(0.62rem, 0.78vw, 0.74rem);
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -787,7 +787,7 @@ a {
 
 .hero-show-item {
   display: grid;
-  gap: 0.2rem;
+  gap: 0.14rem;
   justify-items: center;
   width: 100%;
 }
@@ -801,7 +801,7 @@ a {
 .hero-show-item-omar .hero-float {
   width: 100%;
   height: auto;
-  aspect-ratio: 1 / 1.18;
+  aspect-ratio: 1 / 1.05;
 }
 
 .hero-float-base,
@@ -886,12 +886,12 @@ a {
 .hero-show-label {
   position: static;
   margin: 0;
-  padding: 0.12rem 0.34rem;
+  padding: 0.08rem 0.26rem;
   border-radius: 999px;
   border: 1px solid rgba(125, 211, 252, 0.78);
   background: rgba(255, 255, 255, 0.9);
   color: #0f172a;
-  font-size: 0.55rem;
+  font-size: 0.5rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -979,7 +979,7 @@ a {
 }
 
 .hero-photo-left {
-  animation: none;
+  animation: hero-photo-sway-left 5.6s ease-in-out infinite;
 }
 
 .hero-photo-left::before {
@@ -987,7 +987,8 @@ a {
 }
 
 .hero-photo-right {
-  animation: none;
+  animation: hero-photo-sway-right 5.9s ease-in-out infinite;
+  animation-delay: 0.38s;
 }
 
 .hero-photo-right::before {
@@ -1247,30 +1248,20 @@ a {
 
 .spotify-artist-pyramid {
   margin-top: 0.62rem;
-  display: grid;
-  gap: 0.56rem;
+  display: block;
 }
 
-.spotify-artist-row {
+.spotify-artist-list {
   margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 0.56rem;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
 }
 
-.spotify-artist-row > li {
+.spotify-artist-list > li {
   min-width: 0;
-}
-
-.spotify-artist-row-1 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.spotify-artist-row-2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  width: min(100%, 72%);
-  margin-inline: auto;
 }
 
 .spotify-artist-pill {
@@ -1634,16 +1625,6 @@ a {
   }
 }
 
-@media (max-width: 900px) {
-  .spotify-artist-row-1 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .spotify-artist-row-2 {
-    width: 100%;
-  }
-}
-
 @media (max-width: 1360px) {
   .hero-section {
     padding-bottom: 32px;
@@ -1665,21 +1646,21 @@ a {
     top: auto;
     right: auto;
     bottom: auto;
-    width: min(100%, 410px);
-    gap: 0.3rem;
+    width: min(100%, 350px);
+    gap: 0.24rem;
     justify-items: center;
     justify-content: center;
   }
 
   .hero-shows-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.34rem;
+    gap: 0.24rem;
   }
 
   .hero-media-grid {
-    width: min(100%, 410px);
+    width: min(100%, 350px);
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.3rem;
+    gap: 0.22rem;
   }
 
   .hero-media-group-books-wide {
@@ -1714,12 +1695,6 @@ a {
 
   .spotify-artist-pyramid {
     gap: 0.44rem;
-  }
-
-  .spotify-artist-row-1,
-  .spotify-artist-row-2 {
-    grid-template-columns: 1fr;
-    width: 100%;
   }
 
   .spotify-artist-pill {
@@ -1767,11 +1742,11 @@ a {
 
 @media (max-width: 1180px) {
   .hero-shows-grid {
-    gap: 0.32rem;
+    gap: 0.24rem;
   }
 
   .hero-media-grid {
-    width: min(100%, 374px);
+    width: min(100%, 338px);
   }
 }
 
@@ -1782,13 +1757,13 @@ a {
 
   .hero-shows-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.28rem;
+    gap: 0.22rem;
   }
 
   .hero-media-grid {
     grid-template-columns: 1fr;
-    width: min(100%, 312px);
-    gap: 0.28rem;
+    width: min(100%, 286px);
+    gap: 0.22rem;
   }
 
   .hero-media-group-books-wide {
@@ -1812,8 +1787,8 @@ a {
   }
 
   .hero-show-label {
-    font-size: 0.58rem;
-    padding: 0.1rem 0.28rem;
+    font-size: 0.54rem;
+    padding: 0.08rem 0.22rem;
   }
 }
 
@@ -1824,7 +1799,7 @@ a {
 
   .hero-media-grid {
     grid-template-columns: 1fr;
-    width: min(100%, 292px);
+    width: min(100%, 266px);
   }
 
   .hero-media-group-books .hero-media-covers {

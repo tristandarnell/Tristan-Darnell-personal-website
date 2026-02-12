@@ -108,6 +108,7 @@ type SpotifyClientCache = {
 const SPOTIFY_CLIENT_CACHE_KEY = "spotify_top_cache_v4";
 const SPOTIFY_CLIENT_CACHE_TTL_MS = 1000 * 60 * 30;
 const SPOTIFY_RETRY_AT_KEY = "spotify_retry_at_v1";
+const SPOTIFY_GENERIC_ARTIST_FALLBACK = "/images/spotify-artist-fallback.svg";
 const SPOTIFY_ARTIST_IMAGE_FALLBACKS: Record<string, string> = {
   "dominic fike": "/images/spotify-fallback-dominic-fike.svg",
   "kanye west": "/images/spotify-fallback-kanye-west.svg",
@@ -265,12 +266,12 @@ export default function Home() {
         (fallbackArtist) => normalizeArtistName(fallbackArtist.name) === normalizeArtistName(safeName)
       )?.image ??
       slotFallback.image ??
-      null;
+      SPOTIFY_GENERIC_ARTIST_FALLBACK;
     return {
       id: safeId,
       name: safeName,
       url: safeUrl,
-      image: liveArtist?.image ?? fallbackImage
+      image: liveArtist?.image ?? fallbackImage ?? SPOTIFY_GENERIC_ARTIST_FALLBACK
     };
   });
   const spotifyTopTracks = Array.from({ length: 5 }, (_, index) => {
@@ -286,7 +287,6 @@ export default function Home() {
       url: liveTrack.url?.trim() ? liveTrack.url : fallbackTrack.url
     };
   });
-  const spotifyTopArtistsRows = [spotifyArtistsForUi.slice(0, 3), spotifyArtistsForUi.slice(3, 5)];
   const spotifyArtistCount = spotifyArtistsForUi.length;
   const spotifyTrackCount = spotifyTopTracks.length;
   const linkedinUrl = profile.links.find((link) => link.label === "LinkedIn")?.href ?? "#";
@@ -915,44 +915,42 @@ export default function Home() {
                     <section className="spotify-strip-block">
                       <p className="spotify-panel-label">Top Artists</p>
                       <div className="spotify-artist-pyramid">
-                        {spotifyTopArtistsRows.map((row, rowIndex) => (
-                          <ul key={`artist-row-${rowIndex}`} className={`spotify-artist-row spotify-artist-row-${rowIndex + 1}`}>
-                            {row.map((artist, artistIndex) => {
-                              const rank = rowIndex === 0 ? artistIndex + 1 : artistIndex + 4;
-                              const slotFallback = SPOTIFY_UI_FALLBACK.artists[rank - 1];
-                              const artistName = artist.name.trim() || slotFallback?.name || "Spotify Artist";
-                              const fallbackImage =
-                                getArtistFallbackImage(artistName) ??
-                                SPOTIFY_UI_FALLBACK.artists.find(
-                                  (fallbackArtist) => normalizeArtistName(fallbackArtist.name) === normalizeArtistName(artistName)
-                                )?.image ??
-                                slotFallback?.image ??
-                                null;
-                              const imageSrc = !spotifyBrokenImages[artist.id] ? artist.image ?? fallbackImage : fallbackImage;
-                              return (
-                                <li key={artist.id}>
-                                  <a href={artist.url} target="_blank" rel="noreferrer" className="spotify-artist-pill">
-                                    <span className="spotify-index">{rank}</span>
-                                    {imageSrc ? (
-                                      <img
-                                        src={imageSrc}
-                                        alt={artist.name}
-                                        className="spotify-avatar"
-                                        referrerPolicy="no-referrer"
-                                        onError={() => setSpotifyBrokenImages((prev) => ({ ...prev, [artist.id]: true }))}
-                                      />
-                                    ) : (
-                                      <span className="spotify-avatar spotify-avatar-fallback" aria-hidden="true">
-                                        {artistName.charAt(0)}
-                                      </span>
-                                    )}
-                                    <span className="spotify-link truncate">{artistName}</span>
-                                  </a>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        ))}
+                        <ul className="spotify-artist-list">
+                          {spotifyArtistsForUi.map((artist, artistIndex) => {
+                            const rank = artistIndex + 1;
+                            const slotFallback = SPOTIFY_UI_FALLBACK.artists[artistIndex];
+                            const artistName = artist.name.trim() || slotFallback?.name || "Spotify Artist";
+                            const fallbackImage =
+                              getArtistFallbackImage(artistName) ??
+                              SPOTIFY_UI_FALLBACK.artists.find(
+                                (fallbackArtist) => normalizeArtistName(fallbackArtist.name) === normalizeArtistName(artistName)
+                              )?.image ??
+                              slotFallback?.image ??
+                              SPOTIFY_GENERIC_ARTIST_FALLBACK;
+                            const imageSrc = !spotifyBrokenImages[artist.id] ? artist.image ?? fallbackImage : fallbackImage;
+                            return (
+                              <li key={artist.id}>
+                                <a href={artist.url} target="_blank" rel="noreferrer" className="spotify-artist-pill">
+                                  <span className="spotify-index">{rank}</span>
+                                  {imageSrc ? (
+                                    <img
+                                      src={imageSrc}
+                                      alt={artistName}
+                                      className="spotify-avatar"
+                                      referrerPolicy="no-referrer"
+                                      onError={() => setSpotifyBrokenImages((prev) => ({ ...prev, [artist.id]: true }))}
+                                    />
+                                  ) : (
+                                    <span className="spotify-avatar spotify-avatar-fallback" aria-hidden="true">
+                                      {artistName.charAt(0)}
+                                    </span>
+                                  )}
+                                  <span className="spotify-link truncate">{artistName}</span>
+                                </a>
+                              </li>
+                            );
+                          })}
+                        </ul>
                       </div>
                     </section>
 
