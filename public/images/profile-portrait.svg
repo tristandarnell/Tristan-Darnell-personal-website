@@ -1,0 +1,14 @@
+<svg width="900" height="1200" viewBox="0 0 900 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="1200" rx="28" fill="url(#bg)"/>
+  <rect x="70" y="80" width="760" height="1040" rx="28" fill="#FFFFFF" fill-opacity="0.82"/>
+  <circle cx="450" cy="430" r="170" fill="#DBEAFE"/>
+  <path d="M272 864C272 746 356 662 450 662C544 662 628 746 628 864V924H272V864Z" fill="#BFDBFE"/>
+  <rect x="220" y="964" width="460" height="30" rx="15" fill="#93C5FD"/>
+  <text x="450" y="1052" text-anchor="middle" fill="#1D4ED8" font-family="Arial, sans-serif" font-size="32" font-weight="700">Replace with your photo</text>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="900" y2="1200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DBEAFE"/>
+      <stop offset="1" stop-color="#EFF6FF"/>
+    </linearGradient>
+  </defs>
+</svg>

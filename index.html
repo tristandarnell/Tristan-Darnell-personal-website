@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tristan Darnell | Engineer & Quant Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="nav-bar">
+    <div class="logo">TD</div>
+    <nav>
+      <a href="#experience">Experience</a>
+      <a href="#projects">Projects</a>
+      <a href="#skills">Stack</a>
+      <a href="#leadership">Leadership</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="ghost" href="assets/resume.pdf" download>Download Résumé</a>
+      <a class="primary" href="mailto:tristdarnell@gmail.com">Email Tristan</a>
+    </div>
+  </header>
+
+  <div class="progress"></div>
+
+  <main class="page">
+    <section id="hero" class="hero card">
+      <div class="hero-text">
+        <p class="eyebrow">Marketplace engineering · Quant systems · Duke CS/Math '29</p>
+        <h1>Tristan Darnell</h1>
+        <p class="lede">
+          I build resilient products where code meets commerce and markets. Co-founder at <strong>Maedo</strong>, shipping
+          cross-market listing automation; quant tinkerer crafting fast research frameworks for futures and prediction markets.
+        </p>
+        <div class="hero-cta">
+          <a class="primary" href="mailto:tristdarnell@gmail.com">Let's collaborate</a>
+          <a class="ghost" href="#projects">See the builds</a>
+        </div>
+        <div class="hero-tags">
+          <span>Next.js + NestJS</span>
+          <span>Redis + BullMQ</span>
+          <span>Async Python</span>
+          <span>Postgres (Neon/Supabase)</span>
+        </div>
+      </div>
+      <div class="hero-panel">
+        <div class="metric">
+          <p class="label">Maedo</p>
+          <h3>Unified marketplace ops</h3>
+          <p class="sub">Cross-listing, inventory sync, and bulk updates for eBay, Etsy, and more.</p>
+        </div>
+        <div class="metric-grid">
+          <div>
+            <p class="label">E-commerce track</p>
+            <p class="value">$1M+ sales</p>
+            <p class="sub">Top Rated seller with automated intake flows.</p>
+          </div>
+          <div>
+            <p class="label">Reliability</p>
+            <p class="value">30% faster</p>
+            <p class="sub">Reduced backtest latency in quant stack.</p>
+          </div>
+          <div>
+            <p class="label">Community</p>
+            <p class="value">1K+ hackers</p>
+            <p class="sub">Supporting HackDuke website & registration.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="experience" class="section">
+      <div class="section-header">
+        <p class="eyebrow">Experience</p>
+        <h2>Building products end-to-end</h2>
+        <p class="section-copy">From founder-led marketplace tooling to shipping hackathon infrastructure for 1,000+ attendees.</p>
+      </div>
+      <div class="timeline" id="experience-list"></div>
+    </section>
+
+    <section id="projects" class="section">
+      <div class="section-header">
+        <p class="eyebrow">Projects</p>
+        <div class="section-top">
+          <h2>Systems that trade, sync, and scale</h2>
+          <div class="filters" id="project-filters"></div>
+        </div>
+        <p class="section-copy">Hands-on experiments in automated trading, prediction markets, and high-speed data pipelines.</p>
+      </div>
+      <div class="grid" id="projects-grid"></div>
+    </section>
+
+    <section id="skills" class="section">
+      <div class="section-header">
+        <p class="eyebrow">Technical Stack</p>
+        <h2>Tools I reach for first</h2>
+      </div>
+      <div class="skills" id="skills-grid"></div>
+    </section>
+
+    <section id="leadership" class="section">
+      <div class="section-header">
+        <p class="eyebrow">Leadership & Awards</p>
+        <h2>Leading teams and sharing what I build</h2>
+      </div>
+      <div class="grid" id="leadership-grid"></div>
+    </section>
+
+    <section id="contact" class="section contact card">
+      <div>
+        <p class="eyebrow">Let's talk</p>
+        <h2>Ready for the next build</h2>
+        <p class="section-copy">Open to engineering internships, quant research collaborations, and shipping products for operators.</p>
+        <div class="contact-actions">
+          <a class="primary" href="mailto:tristdarnell@gmail.com">Email me</a>
+          <a class="ghost" href="assets/resume.pdf" download>Download résumé</a>
+        </div>
+      </div>
+      <div class="contact-meta">
+        <div>
+          <p class="label">Based in</p>
+          <p class="value">Orlando, FL</p>
+        </div>
+        <div>
+          <p class="label">Education</p>
+          <p class="value">Duke University, CS & Math '29</p>
+        </div>
+        <div>
+          <p class="label">Links</p>
+          <p class="value">LinkedIn · GitHub</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="900" rx="28" fill="url(#bg)"/>
+  <rect x="70" y="70" width="1060" height="760" rx="26" fill="#FFFFFF" fill-opacity="0.84"/>
+  <rect x="150" y="560" width="900" height="170" rx="16" fill="#DBEAFE"/>
+  <rect x="220" y="330" width="760" height="250" rx="18" fill="#BFDBFE"/>
+  <rect x="340" y="220" width="520" height="130" rx="14" fill="#93C5FD"/>
+  <rect x="220" y="740" width="760" height="24" rx="12" fill="#60A5FA"/>
+  <text x="600" y="805" text-anchor="middle" fill="#1D4ED8" font-family="Arial, sans-serif" font-size="32" font-weight="700">Replace with your photo</text>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E0F2FE"/>
+      <stop offset="1" stop-color="#EFF6FF"/>
+    </linearGradient>
+  </defs>
+</svg>

@@ -1,0 +1,30 @@
+<svg width="1200" height="760" viewBox="0 0 1200 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="760" rx="28" fill="url(#bg)"/>
+  <rect x="52" y="56" width="1096" height="648" rx="24" fill="#FFFFFF" fill-opacity="0.9"/>
+  <rect x="96" y="102" width="320" height="18" rx="9" fill="#2563EB" fill-opacity="0.2"/>
+
+  <rect x="96" y="160" width="340" height="500" rx="20" fill="#EFF6FF"/>
+  <rect x="132" y="202" width="220" height="14" rx="7" fill="#93C5FD"/>
+  <rect x="132" y="230" width="260" height="10" rx="5" fill="#DBEAFE"/>
+  <rect x="132" y="258" width="268" height="98" rx="14" fill="#FFFFFF" fill-opacity="0.8"/>
+  <rect x="132" y="374" width="268" height="98" rx="14" fill="#FFFFFF" fill-opacity="0.8"/>
+  <rect x="132" y="490" width="268" height="138" rx="14" fill="#FFFFFF" fill-opacity="0.8"/>
+
+  <rect x="462" y="160" width="642" height="500" rx="20" fill="#EFF6FF"/>
+  <path d="M500 546L584 472L662 494L736 420L806 444L886 356L966 394L1042 312" stroke="#2563EB" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M500 580L582 528L664 550L734 492L810 520L886 452L964 478L1042 436" stroke="#60A5FA" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="736" cy="420" r="8" fill="#2563EB"/>
+  <circle cx="886" cy="356" r="8" fill="#2563EB"/>
+  <circle cx="1042" cy="312" r="8" fill="#2563EB"/>
+
+  <rect x="500" y="206" width="240" height="16" rx="8" fill="#93C5FD"/>
+  <rect x="500" y="234" width="560" height="12" rx="6" fill="#DBEAFE"/>
+  <rect x="500" y="256" width="510" height="12" rx="6" fill="#DBEAFE"/>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DBEAFE"/>
+      <stop offset="1" stop-color="#EEF2FF"/>
+    </linearGradient>
+  </defs>
+</svg>
