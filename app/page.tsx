@@ -50,6 +50,17 @@ type SpotifyClientCache = {
 const SPOTIFY_CLIENT_CACHE_KEY = "spotify_top_cache_v1";
 const SPOTIFY_CLIENT_CACHE_TTL_MS = 1000 * 60 * 30;
 
+function hasSpotifyRows(data: SpotifyTopResponse | null | undefined) {
+  if (!data) {
+    return false;
+  }
+  return Boolean(data.connected) || data.artists.length > 0 || data.tracks.length > 0;
+}
+
+function isDegradedSpotifyResponse(data: SpotifyTopResponse) {
+  return Boolean(data.reason);
+}
+
 function formatSpotifyReason(reason?: string): string {
   if (!reason) {
     return "";
@@ -91,8 +102,7 @@ export default function Home() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [spotifyData, setSpotifyData] = useState<SpotifyTopResponse | null>(null);
   const [spotifyLoading, setSpotifyLoading] = useState(true);
-  const spotifyDisplayData =
-    spotifyData && (spotifyData.connected || spotifyData.artists.length > 0 || spotifyData.tracks.length > 0) ? spotifyData : null;
+  const spotifyDisplayData = hasSpotifyRows(spotifyData) ? spotifyData : null;
   const linkedinUrl = profile.links.find((link) => link.label === "LinkedIn")?.href ?? "#";
   const githubUrl = profile.links.find((link) => link.label === "GitHub")?.href ?? "#";
   const showImageSrc = (character: "arya" | "omar") => {
@@ -167,10 +177,7 @@ export default function Home() {
 
     const loadSpotifyTop = async () => {
       const cached = readSpotifyCache();
-      const hasCachedData =
-        Boolean(cached?.data.connected) ||
-        Boolean(cached?.data.artists.length) ||
-        Boolean(cached?.data.tracks.length);
+      const hasCachedData = hasSpotifyRows(cached?.data);
 
       if (cached && hasCachedData && active) {
         setSpotifyData(cached.data);
@@ -187,9 +194,14 @@ export default function Home() {
           throw new Error("Failed to fetch Spotify data");
         }
         const data: SpotifyTopResponse = await response.json();
+        const degraded = isDegradedSpotifyResponse(data);
         if (active) {
-          setSpotifyData(data);
-          if (data.connected || data.artists.length > 0 || data.tracks.length > 0) {
+          if (degraded && cached?.data && hasCachedData) {
+            setSpotifyData(cached.data);
+          } else {
+            setSpotifyData(data);
+          }
+          if (!degraded && hasSpotifyRows(data)) {
             writeSpotifyCache(data);
           }
         }

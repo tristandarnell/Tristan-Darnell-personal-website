@@ -29,31 +29,31 @@ const OWNER_FALLBACK_PAYLOAD: SpotifyTopPayload = {
       id: "fallback-dominic-fike",
       name: "Dominic Fike",
       image: null,
-      url: "https://open.spotify.com/search/Dominic%20Fike"
+      url: "https://open.spotify.com/artist/6USv9qhCn6zfxlBQIYJ9qs"
     },
     {
       id: "fallback-kanye-west",
       name: "Kanye West",
       image: null,
-      url: "https://open.spotify.com/search/Kanye%20West"
+      url: "https://open.spotify.com/artist/5K4W6rqBFWDnAN6FQUkS6x"
     },
     {
       id: "fallback-the-weeknd",
       name: "The Weeknd",
       image: null,
-      url: "https://open.spotify.com/search/The%20Weeknd"
+      url: "https://open.spotify.com/artist/1Xyo4u8uXC1ZmMpatF05PJ"
     },
     {
       id: "fallback-don-toliver",
       name: "Don Toliver",
       image: null,
-      url: "https://open.spotify.com/search/Don%20Toliver"
+      url: "https://open.spotify.com/artist/4Gso3d4CscCijv0lmajZWs"
     },
     {
       id: "fallback-mac-miller",
       name: "Mac Miller",
       image: null,
-      url: "https://open.spotify.com/search/Mac%20Miller"
+      url: "https://open.spotify.com/artist/4LLpKhyESsyAXpc4laK94U"
     }
   ],
   tracks: [
@@ -102,6 +102,7 @@ const ownerCache: OwnerCache = {
   staleUntil: 0,
   nextRetryAt: 0
 };
+const oEmbedThumbnailCache = new Map<string, string | null>();
 
 type ResponseOptions = {
   cacheControl?: string;
@@ -158,9 +159,69 @@ function ownerCachePayload(): TopRoutePayload | null {
   };
 }
 
-function ownerFallbackPayload(reason: string): TopRoutePayload {
+function isSpotifyArtistUrl(url: string) {
+  return url.includes("open.spotify.com/artist/");
+}
+
+async function fetchArtistThumbnailFromOEmbed(artistUrl: string) {
+  const cached = oEmbedThumbnailCache.get(artistUrl);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  try {
+    const response = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(artistUrl)}`, {
+      headers: {
+        "User-Agent": "tristan-portfolio/1.0"
+      },
+      cache: "force-cache"
+    });
+    if (!response.ok) {
+      oEmbedThumbnailCache.set(artistUrl, null);
+      return null;
+    }
+    const json = (await response.json()) as { thumbnail_url?: string | null };
+    const thumbnail = json.thumbnail_url ?? null;
+    oEmbedThumbnailCache.set(artistUrl, thumbnail);
+    return thumbnail;
+  } catch {
+    oEmbedThumbnailCache.set(artistUrl, null);
+    return null;
+  }
+}
+
+async function withFallbackArtistThumbnails(payload: SpotifyTopPayload) {
+  const missingAny = payload.artists.some((artist) => !artist.image && isSpotifyArtistUrl(artist.url));
+  if (!missingAny) {
+    return payload;
+  }
+
+  const artists = await Promise.all(
+    payload.artists.map(async (artist) => {
+      if (artist.image || !isSpotifyArtistUrl(artist.url)) {
+        return artist;
+      }
+      const thumbnail = await fetchArtistThumbnailFromOEmbed(artist.url);
+      if (!thumbnail) {
+        return artist;
+      }
+      return {
+        ...artist,
+        image: thumbnail
+      };
+    })
+  );
+
   return {
-    ...OWNER_FALLBACK_PAYLOAD,
+    ...payload,
+    artists
+  };
+}
+
+async function ownerFallbackWithThumbnails(reason: string): Promise<TopRoutePayload> {
+  const payloadWithImages = await withFallbackArtistThumbnails(OWNER_FALLBACK_PAYLOAD);
+  return {
+    ...payloadWithImages,
     mode: "owner",
     reason
   };
@@ -192,7 +253,7 @@ export async function GET(request: NextRequest) {
   try {
     const ownerRefreshToken = process.env.SPOTIFY_REFRESH_TOKEN?.trim();
     if (!ownerRefreshToken) {
-      return responseWithPayload(ownerFallbackPayload("owner_refresh_token_missing"), {
+      return responseWithPayload(await ownerFallbackWithThumbnails("owner_refresh_token_missing"), {
         cacheControl: "public, s-maxage=600, stale-while-revalidate=3600"
       });
     }
@@ -216,7 +277,7 @@ export async function GET(request: NextRequest) {
           retryAfterSeconds: retrySeconds
         });
       }
-      return responseWithPayload(ownerFallbackPayload("owner_rate_limited_backoff"), {
+      return responseWithPayload(await ownerFallbackWithThumbnails("owner_rate_limited_backoff"), {
         cacheControl: rateLimitCacheControl(retrySeconds),
         retryAfterSeconds: retrySeconds
       });
@@ -230,7 +291,7 @@ export async function GET(request: NextRequest) {
           cacheControl: "public, s-maxage=180, stale-while-revalidate=1800"
         });
       }
-      return responseWithPayload(ownerFallbackPayload("owner_refresh_failed"), {
+      return responseWithPayload(await ownerFallbackWithThumbnails("owner_refresh_failed"), {
         cacheControl: "public, s-maxage=300, stale-while-revalidate=1800"
       });
     }
@@ -264,7 +325,7 @@ export async function GET(request: NextRequest) {
           retryAfterSeconds: retrySeconds
         });
       }
-      return responseWithPayload(ownerFallbackPayload(failureReason), {
+      return responseWithPayload(await ownerFallbackWithThumbnails(failureReason), {
         cacheControl: rateLimitCacheControl(retrySeconds),
         retryAfterSeconds: retrySeconds
       });
@@ -277,11 +338,11 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    return responseWithPayload(ownerFallbackPayload(failureReason), {
+    return responseWithPayload(await ownerFallbackWithThumbnails(failureReason), {
       cacheControl: "public, s-maxage=300, stale-while-revalidate=1800"
     });
   } catch {
-    return responseWithPayload(ownerFallbackPayload("owner_unexpected_error"), {
+    return responseWithPayload(await ownerFallbackWithThumbnails("owner_unexpected_error"), {
       cacheControl: "public, s-maxage=300, stale-while-revalidate=1800"
     });
   }

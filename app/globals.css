@@ -649,6 +649,7 @@ a {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
+  min-width: 0;
 }
 
 .spotify-state {
@@ -671,17 +672,20 @@ a {
   gap: 0.56rem;
   overflow-x: auto;
   scrollbar-width: thin;
+  scroll-snap-type: x proximity;
 }
 
 .spotify-artist-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.56rem;
-  min-width: max-content;
+  min-width: clamp(220px, 26vw, 320px);
+  max-width: 100%;
   border-radius: 999px;
   border: 1px solid rgba(147, 197, 253, 0.84);
   background: rgba(255, 255, 255, 0.86);
   padding: 0.36rem 0.72rem 0.36rem 0.52rem;
+  scroll-snap-align: start;
 }
 
 .spotify-index {
@@ -995,7 +999,7 @@ a {
 
   .spotify-table-head,
   .spotify-table-row {
-    grid-template-columns: 1.65rem minmax(0, 1.35fr) minmax(0, 1fr);
+    grid-template-columns: 1.65rem minmax(0, 1.15fr) minmax(0, 1fr);
     gap: 0.48rem;
     padding-inline: 0.62rem;
   }
@@ -1004,6 +1008,17 @@ a {
     width: 2.05rem;
     height: 2.05rem;
     flex-basis: 2.05rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .spotify-artist-pill {
+    min-width: min(84vw, 340px);
+  }
+
+  .spotify-table-head,
+  .spotify-table-row {
+    grid-template-columns: 1.65rem minmax(0, 1fr) minmax(0, 0.9fr);
   }
 }
 
@@ -1016,6 +1031,62 @@ a {
   .spotify-table-head span:last-child,
   .spotify-table-row .spotify-artist-text {
     display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .spotify-strip-block,
+  .spotify-table-block {
+    border-radius: 12px;
+  }
+
+  .spotify-artist-rail {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.44rem;
+    overflow-x: visible;
+    padding-bottom: 0;
+  }
+
+  .spotify-artist-pill {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .spotify-table-head {
+    display: none;
+  }
+
+  .spotify-table-row {
+    grid-template-columns: 1.5rem minmax(0, 1fr);
+    grid-template-areas:
+      "idx song"
+      ". artist";
+    align-items: start;
+    gap: 0.12rem 0.52rem;
+    padding: 0.58rem 0.62rem;
+  }
+
+  .spotify-table-row .spotify-index {
+    grid-area: idx;
+    padding-top: 0.08rem;
+  }
+
+  .spotify-table-row .spotify-link {
+    grid-area: song;
+    overflow: visible;
+    white-space: normal;
+    text-overflow: clip;
+    line-height: 1.22;
+  }
+
+  .spotify-table-row .spotify-artist-text {
+    display: block;
+    grid-area: artist;
+    overflow: visible;
+    white-space: normal;
+    text-overflow: clip;
+    font-size: 0.78rem;
   }
 }
 
