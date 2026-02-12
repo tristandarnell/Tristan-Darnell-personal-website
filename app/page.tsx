@@ -555,6 +555,8 @@ export default function Home() {
               <h1 className="name-gradient text-4xl font-semibold leading-tight sm:text-5xl">{profile.name}</h1>
               <p className="tagline-badge text-sm text-muted">{profile.tagline}</p>
               <div className="hero-personal-photos">
+                <span className="hero-photo-line hero-photo-line-left" aria-hidden="true" />
+                <span className="hero-photo-line hero-photo-line-right" aria-hidden="true" />
                 {homePhotos.map((photo, idx) => (
                   <figure key={photo.src} className={`hero-photo-chip ${idx === 0 ? "hero-photo-left" : "hero-photo-right"}`}>
                     <img
