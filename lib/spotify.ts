@@ -54,6 +54,16 @@ export type SpotifyTopPayload = {
   } | null;
 };
 
+export type SpotifyTopFetchResult =
+  | {
+      ok: true;
+      payload: SpotifyTopPayload;
+    }
+  | {
+      ok: false;
+      reason: string;
+    };
+
 export const spotifyCookieNames = {
   state: "spotify_auth_state",
   setupMode: "spotify_auth_setup",
@@ -140,7 +150,22 @@ export async function refreshAccessToken(params: {
   return (await tokenResponse.json()) as TokenResponse;
 }
 
-export async function fetchSpotifyTopData(accessToken: string): Promise<SpotifyTopPayload | null> {
+async function parseSpotifyError(response: Response, fallback: string): Promise<string> {
+  try {
+    const json = (await response.json()) as { error?: { message?: string } | string };
+    if (typeof json.error === "string" && json.error) {
+      return `${fallback}:${response.status}:${json.error}`;
+    }
+    if (typeof json.error === "object" && json.error?.message) {
+      return `${fallback}:${response.status}:${json.error.message}`;
+    }
+  } catch {
+    // Ignore parse errors and return fallback.
+  }
+  return `${fallback}:${response.status}`;
+}
+
+export async function fetchSpotifyTopData(accessToken: string): Promise<SpotifyTopFetchResult> {
   const headers = { Authorization: `Bearer ${accessToken}` };
   const [artistsRes, tracksRes, profileRes] = await Promise.all([
     fetch(`${API_BASE_URL}/me/top/artists?limit=${TOP_LIMIT}&time_range=${TOP_RANGE}`, {
@@ -157,8 +182,12 @@ export async function fetchSpotifyTopData(accessToken: string): Promise<SpotifyT
     })
   ]);
 
-  if (!artistsRes.ok || !tracksRes.ok) {
-    return null;
+  if (!artistsRes.ok) {
+    return { ok: false, reason: await parseSpotifyError(artistsRes, "artists_request_failed") };
+  }
+
+  if (!tracksRes.ok) {
+    return { ok: false, reason: await parseSpotifyError(tracksRes, "tracks_request_failed") };
   }
 
   const artistsJson = (await artistsRes.json()) as TopArtistsResponse;
@@ -166,25 +195,28 @@ export async function fetchSpotifyTopData(accessToken: string): Promise<SpotifyT
   const profileJson = profileRes.ok ? ((await profileRes.json()) as UserProfileResponse) : null;
 
   return {
-    connected: true,
-    artists: artistsJson.items.map((artist) => ({
-      id: artist.id,
-      name: artist.name,
-      image: artist.images?.[0]?.url ?? null,
-      url: artist.external_urls?.spotify ?? "https://open.spotify.com"
-    })),
-    tracks: tracksJson.items.map((track) => ({
-      id: track.id,
-      name: track.name,
-      artists: track.artists.map((artist) => artist.name),
-      url: track.external_urls?.spotify ?? "https://open.spotify.com"
-    })),
-    profile:
-      profileJson?.display_name && profileJson.external_urls?.spotify
-        ? {
-            displayName: profileJson.display_name,
-            url: profileJson.external_urls.spotify
-          }
-        : null
+    ok: true,
+    payload: {
+      connected: true,
+      artists: artistsJson.items.map((artist) => ({
+        id: artist.id,
+        name: artist.name,
+        image: artist.images?.[0]?.url ?? null,
+        url: artist.external_urls?.spotify ?? "https://open.spotify.com"
+      })),
+      tracks: tracksJson.items.map((track) => ({
+        id: track.id,
+        name: track.name,
+        artists: track.artists.map((artist) => artist.name),
+        url: track.external_urls?.spotify ?? "https://open.spotify.com"
+      })),
+      profile:
+        profileJson?.display_name && profileJson.external_urls?.spotify
+          ? {
+              displayName: profileJson.display_name,
+              url: profileJson.external_urls.spotify
+            }
+          : null
+    }
   };
 }

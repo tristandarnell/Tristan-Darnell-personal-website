@@ -104,14 +104,14 @@ export async function GET(request: NextRequest) {
     if (!ownerTokenData) {
       ownerFailureReason = "owner_refresh_failed";
     } else {
-      const ownerPayload = await fetchSpotifyTopData(ownerTokenData.accessToken);
-      if (ownerPayload) {
+      const ownerResult = await fetchSpotifyTopData(ownerTokenData.accessToken);
+      if (ownerResult.ok) {
         return responseWithPayload({
-          ...ownerPayload,
+          ...ownerResult.payload,
           mode: "owner"
         });
       }
-      ownerFailureReason = "owner_fetch_failed";
+      ownerFailureReason = `owner_fetch_failed:${ownerResult.reason}`;
     }
   }
 
@@ -152,10 +152,12 @@ export async function GET(request: NextRequest) {
     return response;
   }
 
-  const payload = await fetchSpotifyTopData(accessToken);
-  if (!payload) {
+  const payloadResult = await fetchSpotifyTopData(accessToken);
+  if (!payloadResult.ok) {
     if (!refreshToken) {
-      const response = responseWithPayload(disconnected(ownerFailureReason ?? "cookie_fetch_failed", "none"));
+      const response = responseWithPayload(
+        disconnected(ownerFailureReason ?? `cookie_fetch_failed:${payloadResult.reason}`, "none")
+      );
       clearSpotifyCookies(response);
       return response;
     }
@@ -166,13 +168,15 @@ export async function GET(request: NextRequest) {
       return response;
     }
     const retried = await fetchSpotifyTopData(refreshedCookieData.accessToken);
-    if (!retried) {
-      const response = responseWithPayload(disconnected(ownerFailureReason ?? "cookie_fetch_failed", "none"));
+    if (!retried.ok) {
+      const response = responseWithPayload(
+        disconnected(ownerFailureReason ?? `cookie_fetch_failed:${retried.reason}`, "none")
+      );
       clearSpotifyCookies(response);
       return response;
     }
     const response = responseWithPayload({
-      ...retried,
+      ...retried.payload,
       mode: "cookie"
     });
     attachTokenCookies(response, refreshedCookieData);
@@ -180,7 +184,7 @@ export async function GET(request: NextRequest) {
   }
 
   const response = responseWithPayload({
-    ...payload,
+    ...payloadResult.payload,
     mode: "cookie"
   });
   if (refreshedCookieData) {
