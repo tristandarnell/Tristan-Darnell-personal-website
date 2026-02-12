@@ -73,6 +73,7 @@ body {
   line-height: 1.6;
   font-feature-settings: "cv05" 1, "cv11" 1;
   text-rendering: optimizeLegibility;
+  overflow-x: clip;
 }
 
 img {
@@ -733,26 +734,28 @@ a {
 
 .spotify-artist-rail {
   margin: 0.62rem 0 0;
-  padding: 0 0 0.08rem;
+  padding: 0;
   list-style: none;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.56rem;
-  overflow-x: auto;
-  scrollbar-width: thin;
-  scroll-snap-type: x proximity;
+  overflow: visible;
+}
+
+.spotify-artist-rail > li {
+  min-width: 0;
 }
 
 .spotify-artist-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.56rem;
-  min-width: clamp(220px, 26vw, 320px);
-  max-width: 100%;
+  width: 100%;
+  min-width: 0;
   border-radius: 999px;
   border: 1px solid rgba(147, 197, 253, 0.84);
   background: rgba(255, 255, 255, 0.86);
   padding: 0.36rem 0.72rem 0.36rem 0.52rem;
-  scroll-snap-align: start;
 }
 
 .spotify-index {
@@ -870,6 +873,13 @@ a {
 
 .spotify-avatar-fallback {
   background: linear-gradient(150deg, rgba(191, 219, 254, 0.75), rgba(219, 234, 254, 0.5));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #1e40af;
+  text-transform: uppercase;
 }
 
 .spotify-link {
@@ -998,6 +1008,7 @@ a {
 
 .dark .spotify-avatar-fallback {
   background: linear-gradient(150deg, rgba(30, 64, 175, 0.6), rgba(37, 99, 235, 0.4));
+  color: #e2e8f0;
 }
 
 .dark .spotify-link {
@@ -1079,8 +1090,8 @@ a {
 }
 
 @media (max-width: 900px) {
-  .spotify-artist-pill {
-    min-width: min(84vw, 340px);
+  .spotify-artist-rail {
+    grid-template-columns: 1fr;
   }
 
   .spotify-table-head,

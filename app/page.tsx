@@ -102,6 +102,8 @@ export default function Home() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [spotifyData, setSpotifyData] = useState<SpotifyTopResponse | null>(null);
   const [spotifyLoading, setSpotifyLoading] = useState(true);
+  const [spotifyImageOverrides, setSpotifyImageOverrides] = useState<Record<string, string>>({});
+  const [spotifyBrokenImages, setSpotifyBrokenImages] = useState<Record<string, boolean>>({});
   const spotifyDisplayData = hasSpotifyRows(spotifyData) ? spotifyData : null;
   const spotifyArtistCount = spotifyDisplayData?.artists.length ?? 0;
   const spotifyTrackCount = spotifyDisplayData?.tracks.length ?? 0;
@@ -226,6 +228,55 @@ export default function Home() {
       observer.disconnect();
     };
   }, [spotifyArtistCount, spotifyTrackCount]);
+
+  useEffect(() => {
+    if (!spotifyDisplayData?.artists?.length) {
+      return;
+    }
+
+    const missingImageArtists = spotifyDisplayData.artists.filter(
+      (artist) => !artist.image && !spotifyImageOverrides[artist.id] && artist.url.includes("open.spotify.com/artist/")
+    );
+    if (!missingImageArtists.length) {
+      return;
+    }
+
+    let cancelled = false;
+    const hydrateArtistImages = async () => {
+      const found = await Promise.all(
+        missingImageArtists.map(async (artist) => {
+          try {
+            const response = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(artist.url)}`);
+            if (!response.ok) {
+              return null;
+            }
+            const json = (await response.json()) as { thumbnail_url?: string | null };
+            if (!json.thumbnail_url) {
+              return null;
+            }
+            return [artist.id, json.thumbnail_url] as const;
+          } catch {
+            return null;
+          }
+        })
+      );
+
+      if (cancelled) {
+        return;
+      }
+
+      const updates = Object.fromEntries(found.filter((item): item is readonly [string, string] => Boolean(item)));
+      if (Object.keys(updates).length) {
+        setSpotifyImageOverrides((prev) => ({ ...prev, ...updates }));
+      }
+    };
+
+    void hydrateArtistImages();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [spotifyDisplayData, spotifyImageOverrides]);
 
   useEffect(() => {
     let active = true;
@@ -570,8 +621,8 @@ export default function Home() {
         </section>
 
         <section id="personality" className="section">
-          <div className="grid gap-5 xl:grid-cols-[1fr,1.1fr]">
-            <Card className="photo-card spotify-card p-5">
+          <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1.35fr)_minmax(260px,0.65fr)]">
+            <Card className="photo-card spotify-card min-w-0 overflow-hidden p-5">
               <CardHeader className="p-0 pb-4">
                 <CardTitle className="spotify-title inline-flex items-center gap-2 text-2xl text-slate-900">
                   <Music4 className="h-5 w-5 text-blue-700" />
@@ -598,10 +649,17 @@ export default function Home() {
                           <li key={artist.id}>
                             <a href={artist.url} target="_blank" rel="noreferrer" className="spotify-artist-pill">
                               <span className="spotify-index">{index + 1}</span>
-                              {artist.image ? (
-                                <img src={artist.image} alt={artist.name} className="spotify-avatar" />
+                              {!spotifyBrokenImages[artist.id] && (spotifyImageOverrides[artist.id] ?? artist.image) ? (
+                                <img
+                                  src={spotifyImageOverrides[artist.id] ?? artist.image ?? ""}
+                                  alt={artist.name}
+                                  className="spotify-avatar"
+                                  onError={() => setSpotifyBrokenImages((prev) => ({ ...prev, [artist.id]: true }))}
+                                />
                               ) : (
-                                <span className="spotify-avatar spotify-avatar-fallback" />
+                                <span className="spotify-avatar spotify-avatar-fallback" aria-hidden="true">
+                                  {artist.name.charAt(0)}
+                                </span>
                               )}
                               <span className="spotify-link truncate">{artist.name}</span>
                             </a>
@@ -638,7 +696,7 @@ export default function Home() {
                 )}
               </CardContent>
             </Card>
-            <Card className="photo-card p-5">
+            <Card className="photo-card min-w-0 p-5">
               <CardHeader className="p-0 pb-4">
                 <CardTitle className="text-2xl text-slate-900">Photography</CardTitle>
               </CardHeader>
