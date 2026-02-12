@@ -5,6 +5,7 @@ const API_BASE_URL = "https://api.spotify.com/v1";
 const TOP_ARTISTS_LIMIT = 5;
 const TOP_TRACKS_LIMIT = 10;
 const TOP_RANGE = "medium_term";
+const ARTISTS_LOOKUP_BATCH_SIZE = 50;
 
 type TokenResponse = {
   access_token: string;
@@ -33,6 +34,13 @@ type TopTracksResponse = {
 type UserProfileResponse = {
   display_name?: string;
   external_urls?: { spotify?: string };
+};
+
+type ArtistsLookupResponse = {
+  artists: Array<{
+    id: string;
+    images?: Array<{ url: string }>;
+  }>;
 };
 
 export type SpotifyTopPayload = {
@@ -169,6 +177,47 @@ async function parseSpotifyError(response: Response, fallback: string): Promise<
   return `${fallback}:${response.status}${retryAfterPart}`;
 }
 
+function chunkItems<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
+
+async function fetchMissingArtistImages(accessToken: string, artistIds: string[]) {
+  const uniqueIds = Array.from(new Set(artistIds.filter(Boolean)));
+  const imageByArtistId = new Map<string, string>();
+  if (!uniqueIds.length) {
+    return imageByArtistId;
+  }
+
+  const headers = { Authorization: `Bearer ${accessToken}` };
+  const batches = chunkItems(uniqueIds, ARTISTS_LOOKUP_BATCH_SIZE);
+
+  await Promise.all(
+    batches.map(async (ids) => {
+      const query = new URLSearchParams({ ids: ids.join(",") });
+      const response = await fetch(`${API_BASE_URL}/artists?${query.toString()}`, {
+        headers,
+        cache: "no-store"
+      });
+      if (!response.ok) {
+        return;
+      }
+      const json = (await response.json()) as ArtistsLookupResponse;
+      json.artists.forEach((artist) => {
+        const image = artist.images?.[0]?.url;
+        if (image) {
+          imageByArtistId.set(artist.id, image);
+        }
+      });
+    })
+  );
+
+  return imageByArtistId;
+}
+
 export async function fetchSpotifyTopData(accessToken: string): Promise<SpotifyTopFetchResult> {
   const headers = { Authorization: `Bearer ${accessToken}` };
   const [artistsRes, tracksRes, profileRes] = await Promise.all([
@@ -197,16 +246,23 @@ export async function fetchSpotifyTopData(accessToken: string): Promise<SpotifyT
   const artistsJson = (await artistsRes.json()) as TopArtistsResponse;
   const tracksJson = (await tracksRes.json()) as TopTracksResponse;
   const profileJson = profileRes.ok ? ((await profileRes.json()) as UserProfileResponse) : null;
+  const topArtists = artistsJson.items.map((artist) => ({
+    id: artist.id,
+    name: artist.name,
+    image: artist.images?.[0]?.url ?? null,
+    url: artist.external_urls?.spotify ?? "https://open.spotify.com"
+  }));
+  const artistsMissingImages = topArtists.filter((artist) => !artist.image).map((artist) => artist.id);
+  const filledArtistImages =
+    artistsMissingImages.length > 0 ? await fetchMissingArtistImages(accessToken, artistsMissingImages) : new Map<string, string>();
 
   return {
     ok: true,
     payload: {
       connected: true,
-      artists: artistsJson.items.map((artist) => ({
-        id: artist.id,
-        name: artist.name,
-        image: artist.images?.[0]?.url ?? null,
-        url: artist.external_urls?.spotify ?? "https://open.spotify.com"
+      artists: topArtists.map((artist) => ({
+        ...artist,
+        image: artist.image ?? filledArtistImages.get(artist.id) ?? null
       })),
       tracks: tracksJson.items.map((track) => ({
         id: track.id,

@@ -102,7 +102,6 @@ export default function Home() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [spotifyData, setSpotifyData] = useState<SpotifyTopResponse | null>(null);
   const [spotifyLoading, setSpotifyLoading] = useState(true);
-  const [spotifyImageOverrides, setSpotifyImageOverrides] = useState<Record<string, string>>({});
   const [spotifyBrokenImages, setSpotifyBrokenImages] = useState<Record<string, boolean>>({});
   const spotifyDisplayData = hasSpotifyRows(spotifyData) ? spotifyData : null;
   const spotifyArtistCount = spotifyDisplayData?.artists.length ?? 0;
@@ -227,53 +226,8 @@ export default function Home() {
   }, [spotifyArtistCount, spotifyTrackCount]);
 
   useEffect(() => {
-    if (!spotifyDisplayData?.artists?.length) {
-      return;
-    }
-
-    const missingImageArtists = spotifyDisplayData.artists.filter(
-      (artist) => !artist.image && !spotifyImageOverrides[artist.id] && artist.url.includes("open.spotify.com/artist/")
-    );
-    if (!missingImageArtists.length) {
-      return;
-    }
-
-    let cancelled = false;
-    const hydrateArtistImages = async () => {
-      const found = await Promise.all(
-        missingImageArtists.map(async (artist) => {
-          try {
-            const response = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(artist.url)}`);
-            if (!response.ok) {
-              return null;
-            }
-            const json = (await response.json()) as { thumbnail_url?: string | null };
-            if (!json.thumbnail_url) {
-              return null;
-            }
-            return [artist.id, json.thumbnail_url] as const;
-          } catch {
-            return null;
-          }
-        })
-      );
-
-      if (cancelled) {
-        return;
-      }
-
-      const updates = Object.fromEntries(found.filter((item): item is readonly [string, string] => Boolean(item)));
-      if (Object.keys(updates).length) {
-        setSpotifyImageOverrides((prev) => ({ ...prev, ...updates }));
-      }
-    };
-
-    void hydrateArtistImages();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [spotifyDisplayData, spotifyImageOverrides]);
+    setSpotifyBrokenImages({});
+  }, [spotifyDisplayData]);
 
   useEffect(() => {
     let active = true;
@@ -645,9 +599,9 @@ export default function Home() {
                           <li key={artist.id}>
                             <a href={artist.url} target="_blank" rel="noreferrer" className="spotify-artist-pill">
                               <span className="spotify-index">{index + 1}</span>
-                              {!spotifyBrokenImages[artist.id] && (spotifyImageOverrides[artist.id] ?? artist.image) ? (
+                              {!spotifyBrokenImages[artist.id] && artist.image ? (
                                 <img
-                                  src={spotifyImageOverrides[artist.id] ?? artist.image ?? ""}
+                                  src={artist.image}
                                   alt={artist.name}
                                   className="spotify-avatar"
                                   onError={() => setSpotifyBrokenImages((prev) => ({ ...prev, [artist.id]: true }))}

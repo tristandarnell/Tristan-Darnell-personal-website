@@ -102,7 +102,6 @@ const ownerCache: OwnerCache = {
   staleUntil: 0,
   nextRetryAt: 0
 };
-const artistThumbnailCache = new Map<string, string | null>();
 
 type ResponseOptions = {
   cacheControl?: string;
@@ -159,103 +158,9 @@ function ownerCachePayload(): TopRoutePayload | null {
   };
 }
 
-function isSpotifyArtistUrl(url: string) {
-  return url.includes("open.spotify.com/artist/");
-}
-
-async function fetchArtistThumbnailFromOEmbed(artistUrl: string) {
-  const cached = artistThumbnailCache.get(artistUrl);
-  if (cached !== undefined) {
-    return cached;
-  }
-
-  try {
-    const response = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(artistUrl)}`, {
-      headers: {
-        "User-Agent": "tristan-portfolio/1.0"
-      },
-      cache: "force-cache"
-    });
-    if (!response.ok) {
-      return null;
-    }
-    const json = (await response.json()) as { thumbnail_url?: string | null };
-    return json.thumbnail_url ?? null;
-  } catch {
-    return null;
-  }
-}
-
-async function fetchArtistThumbnailFromOpenGraph(artistUrl: string) {
-  try {
-    const response = await fetch(artistUrl, {
-      headers: {
-        "User-Agent": "tristan-portfolio/1.0"
-      },
-      cache: "force-cache"
-    });
-    if (!response.ok) {
-      return null;
-    }
-    const html = await response.text();
-    const ogImageMatch =
-      html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i) ??
-      html.match(/<meta\s+content="([^"]+)"\s+property="og:image"/i);
-    return ogImageMatch?.[1] ?? null;
-  } catch {
-    return null;
-  }
-}
-
-async function fetchArtistThumbnail(artistUrl: string) {
-  const cached = artistThumbnailCache.get(artistUrl);
-  if (cached !== undefined) {
-    return cached;
-  }
-
-  const openGraphImage = await fetchArtistThumbnailFromOpenGraph(artistUrl);
-  if (openGraphImage) {
-    artistThumbnailCache.set(artistUrl, openGraphImage);
-    return openGraphImage;
-  }
-
-  const oEmbedImage = await fetchArtistThumbnailFromOEmbed(artistUrl);
-  artistThumbnailCache.set(artistUrl, oEmbedImage);
-  return oEmbedImage;
-}
-
-async function withFallbackArtistThumbnails(payload: SpotifyTopPayload) {
-  const missingAny = payload.artists.some((artist) => !artist.image && isSpotifyArtistUrl(artist.url));
-  if (!missingAny) {
-    return payload;
-  }
-
-  const artists = await Promise.all(
-    payload.artists.map(async (artist) => {
-      if (artist.image || !isSpotifyArtistUrl(artist.url)) {
-        return artist;
-      }
-      const thumbnail = await fetchArtistThumbnail(artist.url);
-      if (!thumbnail) {
-        return artist;
-      }
-      return {
-        ...artist,
-        image: thumbnail
-      };
-    })
-  );
-
+function ownerFallbackPayload(reason: string): TopRoutePayload {
   return {
-    ...payload,
-    artists
-  };
-}
-
-async function ownerFallbackWithThumbnails(reason: string): Promise<TopRoutePayload> {
-  const payloadWithImages = await withFallbackArtistThumbnails(OWNER_FALLBACK_PAYLOAD);
-  return {
-    ...payloadWithImages,
+    ...OWNER_FALLBACK_PAYLOAD,
     mode: "owner",
     reason
   };
@@ -287,7 +192,7 @@ export async function GET(request: NextRequest) {
   try {
     const ownerRefreshToken = process.env.SPOTIFY_REFRESH_TOKEN?.trim();
     if (!ownerRefreshToken) {
-      return responseWithPayload(await ownerFallbackWithThumbnails("owner_refresh_token_missing"), {
+      return responseWithPayload(ownerFallbackPayload("owner_refresh_token_missing"), {
         cacheControl: "public, s-maxage=600, stale-while-revalidate=3600"
       });
     }
@@ -311,7 +216,7 @@ export async function GET(request: NextRequest) {
           retryAfterSeconds: retrySeconds
         });
       }
-      return responseWithPayload(await ownerFallbackWithThumbnails("owner_rate_limited_backoff"), {
+      return responseWithPayload(ownerFallbackPayload("owner_rate_limited_backoff"), {
         cacheControl: rateLimitCacheControl(retrySeconds),
         retryAfterSeconds: retrySeconds
       });
@@ -325,7 +230,7 @@ export async function GET(request: NextRequest) {
           cacheControl: "public, s-maxage=180, stale-while-revalidate=1800"
         });
       }
-      return responseWithPayload(await ownerFallbackWithThumbnails("owner_refresh_failed"), {
+      return responseWithPayload(ownerFallbackPayload("owner_refresh_failed"), {
         cacheControl: "public, s-maxage=300, stale-while-revalidate=1800"
       });
     }
@@ -359,7 +264,7 @@ export async function GET(request: NextRequest) {
           retryAfterSeconds: retrySeconds
         });
       }
-      return responseWithPayload(await ownerFallbackWithThumbnails(failureReason), {
+      return responseWithPayload(ownerFallbackPayload(failureReason), {
         cacheControl: rateLimitCacheControl(retrySeconds),
         retryAfterSeconds: retrySeconds
       });
@@ -372,11 +277,11 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    return responseWithPayload(await ownerFallbackWithThumbnails(failureReason), {
+    return responseWithPayload(ownerFallbackPayload(failureReason), {
       cacheControl: "public, s-maxage=300, stale-while-revalidate=1800"
     });
   } catch {
-    return responseWithPayload(await ownerFallbackWithThumbnails("owner_unexpected_error"), {
+    return responseWithPayload(ownerFallbackPayload("owner_unexpected_error"), {
       cacheControl: "public, s-maxage=300, stale-while-revalidate=1800"
     });
   }
