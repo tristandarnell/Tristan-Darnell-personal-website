@@ -476,6 +476,7 @@ a {
   display: grid;
   gap: 0.45rem;
   justify-items: center;
+  pointer-events: auto;
 }
 
 .hero-shows-grid {
@@ -510,6 +511,48 @@ a {
     0 18px 42px rgba(30, 64, 175, 0.19),
     0 0 0 2px rgba(255, 255, 255, 0.75);
   will-change: auto;
+  pointer-events: auto;
+}
+
+.hero-float::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 38%, rgba(2, 6, 23, 0.58) 100%);
+  opacity: 0;
+  transition: opacity 0.22s ease;
+  pointer-events: none;
+}
+
+.hero-float::after {
+  content: attr(data-quote);
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(147, 197, 253, 0.82);
+  background: rgba(15, 23, 42, 0.78);
+  color: #eff6ff;
+  font-size: 0.64rem;
+  font-weight: 600;
+  line-height: 1.2;
+  padding: 0.28rem 0.44rem;
+  text-align: center;
+  letter-spacing: 0.01em;
+  opacity: 0;
+  transform: translateY(7px);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+  pointer-events: none;
+}
+
+.hero-float:hover::before,
+.hero-float:hover::after {
+  opacity: 1;
+}
+
+.hero-float:hover::after {
+  transform: translateY(0);
 }
 
 .hero-show-item {
@@ -564,6 +607,16 @@ a {
     0 0 0 2px rgba(148, 163, 184, 0.24);
 }
 
+.dark .hero-float::before {
+  background: linear-gradient(180deg, transparent 36%, rgba(2, 6, 23, 0.72) 100%);
+}
+
+.dark .hero-float::after {
+  border-color: rgba(96, 165, 250, 0.66);
+  background: rgba(15, 23, 42, 0.86);
+  color: #dbeafe;
+}
+
 .dark .hero-shows-heading {
   border-color: rgba(96, 165, 250, 0.58);
   background: linear-gradient(140deg, rgba(30, 64, 175, 0.62), rgba(37, 99, 235, 0.48), rgba(8, 47, 73, 0.66));
@@ -604,29 +657,82 @@ a {
 }
 
 .hero-photo-chip {
+  position: relative;
   width: clamp(128px, 20vw, 180px);
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px solid rgba(147, 197, 253, 0.72);
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.9), rgba(224, 242, 254, 0.62));
+  background: linear-gradient(170deg, rgba(255, 255, 255, 0.96), rgba(240, 249, 255, 0.86));
+  padding: 6px 6px 14px;
   box-shadow:
     0 12px 24px rgba(15, 23, 42, 0.12),
     0 0 0 1px rgba(191, 219, 254, 0.48);
-  overflow: hidden;
+  overflow: visible;
+  transform-origin: 50% -18px;
+  will-change: transform;
+}
+
+.hero-photo-chip::before {
+  content: "";
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  width: 2px;
+  height: 24px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(71, 85, 105, 0.15), rgba(37, 99, 235, 0.55));
+}
+
+.hero-photo-chip::after {
+  content: "";
+  position: absolute;
+  top: -31px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  border: 1px solid rgba(96, 165, 250, 0.68);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(191, 219, 254, 0.9));
+  box-shadow: 0 3px 8px rgba(30, 64, 175, 0.24);
 }
 
 .hero-photo-left {
-  transform: rotate(-1.8deg);
+  animation: hero-photo-sway-left 5.6s ease-in-out infinite;
 }
 
 .hero-photo-right {
-  transform: rotate(1.4deg);
+  animation: hero-photo-sway-right 5.9s ease-in-out infinite;
+  animation-delay: 0.38s;
 }
 
 .hero-photo-img {
   display: block;
   width: 100%;
-  height: 150px;
+  height: 138px;
+  border-radius: 10px;
   object-fit: cover;
+  border: 1px solid rgba(191, 219, 254, 0.82);
+}
+
+@keyframes hero-photo-sway-left {
+  0%,
+  100% {
+    transform: rotate(-2.6deg) translateY(0);
+  }
+  50% {
+    transform: rotate(1.1deg) translateY(1px);
+  }
+}
+
+@keyframes hero-photo-sway-right {
+  0%,
+  100% {
+    transform: rotate(2.2deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-1deg) translateY(1px);
+  }
 }
 
 .experience-timeline {
@@ -681,6 +787,20 @@ a {
   border-color: rgba(59, 130, 246, 0.42);
   background: rgba(30, 41, 59, 0.84);
   box-shadow: 0 10px 20px rgba(2, 6, 23, 0.5);
+}
+
+.dark .hero-photo-chip::before {
+  background: linear-gradient(180deg, rgba(148, 163, 184, 0.18), rgba(96, 165, 250, 0.62));
+}
+
+.dark .hero-photo-chip::after {
+  border-color: rgba(96, 165, 250, 0.68);
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.95), rgba(59, 130, 246, 0.72));
+  box-shadow: 0 3px 9px rgba(2, 6, 23, 0.44);
+}
+
+.dark .hero-photo-img {
+  border-color: rgba(96, 165, 250, 0.42);
 }
 
 .dark .site-main > section::before {
@@ -969,6 +1089,8 @@ a {
 
 .spotify-profile-link {
   display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
   width: fit-content;
   font-size: 0.92rem;
   font-weight: 600;
@@ -1143,7 +1265,7 @@ a {
 
   .hero-photo-left,
   .hero-photo-right {
-    transform: none;
+    transform-origin: 50% -14px;
   }
 
   .spotify-strip-block {
@@ -1344,10 +1466,11 @@ a {
 
   .hero-photo-chip {
     width: min(44vw, 160px);
+    padding: 5px 5px 12px;
   }
 
   .hero-photo-img {
-    height: 132px;
+    height: 124px;
   }
 
   .photos-header-actions {
@@ -1407,7 +1530,8 @@ a {
 
   .hero-float,
   .hero-float-part,
-  .photo-polaroid {
+  .photo-polaroid,
+  .hero-photo-chip {
     animation: none;
   }
 

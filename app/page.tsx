@@ -47,8 +47,9 @@ type SpotifyClientCache = {
   data: SpotifyTopResponse;
 };
 
-const SPOTIFY_CLIENT_CACHE_KEY = "spotify_top_cache_v3";
+const SPOTIFY_CLIENT_CACHE_KEY = "spotify_top_cache_v4";
 const SPOTIFY_CLIENT_CACHE_TTL_MS = 1000 * 60 * 30;
+const SPOTIFY_RETRY_AT_KEY = "spotify_retry_at_v1";
 
 function hasSpotifyRows(data: SpotifyTopResponse | null | undefined) {
   if (!data) {
@@ -62,6 +63,17 @@ function hasSpotifyArtistImages(data: SpotifyTopResponse | null | undefined) {
     return false;
   }
   return data.artists.some((artist) => Boolean(artist.image));
+}
+
+function parseRetryAfterSeconds(value: string | null): number {
+  if (!value) {
+    return 0;
+  }
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return 0;
+  }
+  return Math.max(1, Math.floor(parsed));
 }
 
 function isDegradedSpotifyResponse(data: SpotifyTopResponse) {
@@ -263,6 +275,34 @@ export default function Home() {
       }
     };
 
+    const readRetryAt = () => {
+      try {
+        const raw = window.localStorage.getItem(SPOTIFY_RETRY_AT_KEY);
+        if (!raw) {
+          return 0;
+        }
+        const parsed = Number(raw);
+        if (!Number.isFinite(parsed) || parsed <= 0) {
+          return 0;
+        }
+        return parsed;
+      } catch {
+        return 0;
+      }
+    };
+
+    const writeRetryAt = (retryAtMs: number) => {
+      try {
+        if (retryAtMs <= 0) {
+          window.localStorage.removeItem(SPOTIFY_RETRY_AT_KEY);
+          return;
+        }
+        window.localStorage.setItem(SPOTIFY_RETRY_AT_KEY, String(retryAtMs));
+      } catch {
+        // Ignore client cache write failures.
+      }
+    };
+
     const loadSpotifyTop = async () => {
       const cached = readSpotifyCache();
       const hasCachedData = hasSpotifyRows(cached?.data);
@@ -273,14 +313,25 @@ export default function Home() {
         setSpotifyLoading(false);
       }
 
+      const retryAtMs = readRetryAt();
+      if (retryAtMs > Date.now() && cached && hasCachedData && cachedHasImages) {
+        return;
+      }
+
       if (cached && cachedHasImages && Date.now() - cached.savedAt < SPOTIFY_CLIENT_CACHE_TTL_MS) {
         return;
       }
 
       try {
-        const response = await fetch("/api/spotify/top", { cache: "no-store" });
+        const response = await fetch("/api/spotify/top");
         if (!response.ok) {
           throw new Error("Failed to fetch Spotify data");
+        }
+        const retryAfterSeconds = parseRetryAfterSeconds(response.headers.get("Retry-After"));
+        if (retryAfterSeconds > 0) {
+          writeRetryAt(Date.now() + retryAfterSeconds * 1000);
+        } else {
+          writeRetryAt(0);
         }
         const data: SpotifyTopResponse = await response.json();
         const degraded = isDegradedSpotifyResponse(data);
@@ -293,6 +344,9 @@ export default function Home() {
           }
           if (!degraded && hasSpotifyRows(data) && dataHasImages) {
             writeSpotifyCache(data);
+          }
+          if (!degraded) {
+            writeRetryAt(0);
           }
         }
       } catch {
@@ -376,11 +430,8 @@ export default function Home() {
         <section className="section hero-section gap-6">
           <div className="max-w-3xl">
             <div className="flex flex-col justify-center gap-6">
-              <Badge variant="glow" className="w-fit">
-                {profile.tagline}
-              </Badge>
               <h1 className="name-gradient text-4xl font-semibold leading-tight sm:text-5xl">{profile.name}</h1>
-              <p className="max-w-2xl text-lg text-muted">{profile.blurb}</p>
+              <p className="text-sm text-muted">{profile.tagline}</p>
               <div className="hero-personal-photos">
                 {homePhotos.map((photo, idx) => (
                   <figure key={photo.src} className={`hero-photo-chip ${idx === 0 ? "hero-photo-left" : "hero-photo-right"}`}>
@@ -426,13 +477,13 @@ export default function Home() {
               <p className="hero-shows-heading">Favorite Shows</p>
               <div className="hero-shows-grid">
                 <div className="hero-show-item hero-show-item-arya">
-                  <div className="hero-float">
+                  <div className="hero-float" data-quote="Winter is coming ❄️">
                     <img src={showImageSrc("arya")} alt="" onError={() => onShowImageError("arya")} className="hero-float-base" />
                   </div>
                   <p className="hero-show-label">Game of Thrones</p>
                 </div>
                 <div className="hero-show-item hero-show-item-omar">
-                  <div className="hero-float">
+                  <div className="hero-float" data-quote="A Man's gotta have a code 🧠🔥">
                     <img src={showImageSrc("omar")} alt="" onError={() => onShowImageError("omar")} className="hero-float-base" />
                   </div>
                   <p className="hero-show-label">The Wire</p>
@@ -452,20 +503,23 @@ export default function Home() {
                 <span className="absolute -left-[34px] top-6 h-3.5 w-3.5 rounded-full bg-primary" />
                 <p className="text-xs uppercase tracking-[0.12em] text-blue-700">{item.dates}</p>
                 <h3 className="mt-1 text-xl font-semibold text-slate-900">{item.role}</h3>
-                {item.orgUrl ? (
-                  <p className="text-sm text-muted">
-                    <a href={item.orgUrl} target="_blank" rel="noreferrer" className="transition-colors hover:text-foreground">
-                      {item.org}
-                    </a>
-                  </p>
-                ) : (
-                  <p className="text-sm text-muted">{item.org}</p>
-                )}
+                <p className="text-sm text-muted">{item.org}</p>
                 <ul className="mt-3 space-y-2 text-sm text-muted">
                   {item.bullets.map((bullet) => (
                     <li key={bullet}>{bullet}</li>
                   ))}
                 </ul>
+                {item.orgUrl ? (
+                  <a
+                    href={item.orgUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-700 transition-colors hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200"
+                  >
+                    Visit {item.org}
+                    <span aria-hidden="true">↗</span>
+                  </a>
+                ) : null}
               </div>
             ))}
           </div>
@@ -502,11 +556,45 @@ export default function Home() {
                         </span>
                       ))}
                     </div>
+                    <div className="space-y-2 text-sm text-muted">
+                      <p>
+                        <span className="font-semibold text-slate-900">Problem:</span> {project.problemStatement}
+                      </p>
+                      <p>
+                        <span className="font-semibold text-slate-900">Result:</span> {project.resultStatement}
+                      </p>
+                    </div>
                     <ul className="space-y-2 text-sm text-muted">
                       {project.highlights.map((item) => (
                         <li key={item}>{item}</li>
                       ))}
                     </ul>
+                    <div className="flex flex-wrap items-center gap-3">
+                      {project.proofUrl ? (
+                        <a
+                          href={project.proofUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-sm font-semibold text-blue-700 transition-colors hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200"
+                        >
+                          {project.proofLabel ?? "View write-up"}
+                          <span aria-hidden="true">↗</span>
+                        </a>
+                      ) : (
+                        <span className="text-sm text-muted">Write-up available on request.</span>
+                      )}
+                      {project.repoUrl ? (
+                        <a
+                          href={project.repoUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-sm font-semibold text-blue-700 transition-colors hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200"
+                        >
+                          <Github className="h-4 w-4" />
+                          View on GitHub
+                        </a>
+                      ) : null}
+                    </div>
                   </CardContent>
                 </Card>
               );
@@ -654,11 +742,15 @@ export default function Home() {
                       </ul>
                     </section>
 
-                    {spotifyDisplayData.profile ? (
-                      <a href={spotifyDisplayData.profile.url} target="_blank" rel="noreferrer" className="spotify-profile-link">
-                        Open {spotifyDisplayData.profile.displayName}&apos;s Spotify profile
-                      </a>
-                    ) : null}
+                    <a
+                      href={spotifyDisplayData.profile?.url ?? media.spotifyLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="spotify-profile-link"
+                    >
+                      <Music4 className="h-4 w-4" aria-hidden="true" />
+                      <span>View my Spotify profile</span>
+                    </a>
                   </>
                 )}
               </CardContent>

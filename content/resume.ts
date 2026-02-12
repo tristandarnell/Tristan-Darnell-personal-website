@@ -2,7 +2,7 @@ export const profile = {
   name: "Tristan Darnell",
   location: "Orlando, FL",
   email: "tristdarnell@gmail.com",
-  tagline: "Software engineering · Duke CS/Math '29",
+  tagline: "Software engineering * Duke CS/Math '28",
   blurb:
     "Duke CS/Math student building production web applications, backend infrastructure, and quantitative research tooling.",
   links: [
@@ -75,11 +75,32 @@ export const experience: ExperienceItem[] = [
   }
 ];
 
-export const projects = [
+type ProjectItem = {
+  title: string;
+  stage: string;
+  blurb: string;
+  problemStatement: string;
+  resultStatement: string;
+  proofUrl?: string;
+  proofLabel?: string;
+  repoUrl?: string;
+  image: string;
+  tech: string[];
+  tags: string[];
+  highlights: string[];
+};
+
+export const projects: ProjectItem[] = [
   {
     title: "Crypto Futures Framework",
-    stage: "In Progress",
+    stage: "Active Research",
     blurb: "Async research and execution framework for high-frequency crypto futures strategies.",
+    problemStatement: "Built to speed up strategy iteration when crypto data ingestion and backtests become the bottleneck.",
+    resultStatement:
+      "Reduced OHLCV load latency by 30% and backtest iteration time by 25%, with max drawdown lowered by 15% after risk-model updates.",
+    proofUrl: "https://github.com/tristandarnell/Crypto-Trend-Engine",
+    proofLabel: "View write-up/code",
+    repoUrl: "https://github.com/tristandarnell/Crypto-Trend-Engine",
     image: "/images/project-crypto.svg",
     tech: ["Python", "Asyncio", "Pandas", "NumPy"],
     tags: ["Trading", "Data"],
@@ -90,8 +111,12 @@ export const projects = [
   },
   {
     title: "Prediction Market Arbitrage Bot",
-    stage: "In Progress",
+    stage: "Prototype",
     blurb: "Containerized news-arb system for Polymarket using WebSockets + REST.",
+    problemStatement:
+      "Built to catch short-lived pricing inefficiencies in prediction markets with low-latency signal ingestion and execution.",
+    resultStatement:
+      "Shipped 3 core execution modules (event handler, sizing, and order routing) and integrated 2 live feed types (WebSocket + REST) in one async pipeline.",
     image: "/images/project-arbitrage.svg",
     tech: ["Python", "WebSockets", "REST", "OpenAI API"],
     tags: ["Trading", "Systems"],
@@ -102,8 +127,15 @@ export const projects = [
   },
   {
     title: "Multi-Factor Equity Backtester",
-    stage: "In Progress",
+    stage: "Built & Iterating",
     blurb: "Vectorized engine to test equity alpha factors on U.S. markets.",
+    problemStatement:
+      "Built to evaluate multiple equity factor ideas quickly with consistent risk and performance reporting across strategies.",
+    resultStatement:
+      "Cut runtime by 80% with vectorized pipelines and benchmarked 4 modular strategies in one framework with standardized Sharpe and drawdown outputs.",
+    proofUrl: "https://github.com/tristandarnell/Tradfi-Trend-Strat",
+    proofLabel: "View write-up/code",
+    repoUrl: "https://github.com/tristandarnell/Tradfi-Trend-Strat",
     image: "/images/project-equity.svg",
     tech: ["Python", "Pandas", "NumPy", "yfinance"],
     tags: ["Trading", "Data"],

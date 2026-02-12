@@ -185,7 +185,7 @@ function chunkItems<T>(items: T[], size: number): T[][] {
   return chunks;
 }
 
-async function fetchMissingArtistImages(accessToken: string, artistIds: string[]) {
+async function fetchArtistImagesByIds(accessToken: string, artistIds: string[]) {
   const uniqueIds = Array.from(new Set(artistIds.filter(Boolean)));
   const imageByArtistId = new Map<string, string>();
   if (!uniqueIds.length) {
@@ -252,9 +252,10 @@ export async function fetchSpotifyTopData(accessToken: string): Promise<SpotifyT
     image: artist.images?.[0]?.url ?? null,
     url: artist.external_urls?.spotify ?? "https://open.spotify.com"
   }));
-  const artistsMissingImages = topArtists.filter((artist) => !artist.image).map((artist) => artist.id);
-  const filledArtistImages =
-    artistsMissingImages.length > 0 ? await fetchMissingArtistImages(accessToken, artistsMissingImages) : new Map<string, string>();
+  const artistImagesById = await fetchArtistImagesByIds(
+    accessToken,
+    topArtists.map((artist) => artist.id)
+  );
 
   return {
     ok: true,
@@ -262,7 +263,7 @@ export async function fetchSpotifyTopData(accessToken: string): Promise<SpotifyT
       connected: true,
       artists: topArtists.map((artist) => ({
         ...artist,
-        image: artist.image ?? filledArtistImages.get(artist.id) ?? null
+        image: artistImagesById.get(artist.id) ?? artist.image ?? null
       })),
       tracks: tracksJson.items.map((track) => ({
         id: track.id,

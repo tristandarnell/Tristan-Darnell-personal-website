@@ -110,6 +110,8 @@ const OWNER_CACHE_TTL_MS = 1000 * 60 * 15;
 const OWNER_STALE_TTL_MS = 1000 * 60 * 60 * 24;
 const OWNER_DEFAULT_BACKOFF_MS = 1000 * 60 * 2;
 const MAX_RETRY_BACKOFF_MS = 1000 * 60 * 60 * 24;
+const RESPONSE_S_MAXAGE_SECONDS = 900;
+const RESPONSE_STALE_WHILE_REVALIDATE_SECONDS = 3600;
 
 const ownerCache: OwnerCache = {
   payload: null,
@@ -166,6 +168,10 @@ function toRetrySeconds(delayMs: number) {
 function rateLimitCacheControl(retrySeconds: number) {
   const clamped = Math.max(60, Math.min(retrySeconds, 60 * 60));
   return `public, s-maxage=${clamped}, stale-while-revalidate=300`;
+}
+
+function stableCacheControl() {
+  return `public, s-maxage=${RESPONSE_S_MAXAGE_SECONDS}, stale-while-revalidate=${RESPONSE_STALE_WHILE_REVALIDATE_SECONDS}`;
 }
 
 function ownerCachePayload(): TopRoutePayload | null {
@@ -318,7 +324,7 @@ export async function GET(request: NextRequest) {
       const payload = ownerCachePayload();
       if (payload) {
         return responseWithPayload(payload, {
-          cacheControl: "public, s-maxage=180, stale-while-revalidate=1800"
+          cacheControl: stableCacheControl()
         });
       }
     }
@@ -343,7 +349,7 @@ export async function GET(request: NextRequest) {
       const payload = ownerCachePayload();
       if (payload && now < ownerCache.staleUntil) {
         return responseWithPayload(payload, {
-          cacheControl: "public, s-maxage=180, stale-while-revalidate=1800"
+          cacheControl: stableCacheControl()
         });
       }
       return responseWithPayload(await ownerFallbackPayload("owner_refresh_failed"), {
@@ -363,7 +369,7 @@ export async function GET(request: NextRequest) {
           mode: "owner"
         },
         {
-          cacheControl: "public, s-maxage=180, stale-while-revalidate=1800"
+          cacheControl: stableCacheControl()
         }
       );
     }
@@ -389,7 +395,7 @@ export async function GET(request: NextRequest) {
     const payload = ownerCachePayload();
     if (payload && now < ownerCache.staleUntil) {
       return responseWithPayload(payload, {
-        cacheControl: "public, s-maxage=180, stale-while-revalidate=1800"
+        cacheControl: stableCacheControl()
       });
     }
 
