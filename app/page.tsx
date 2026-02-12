@@ -597,38 +597,25 @@ export default function Home() {
           <div className="hero-float-layer">
             <div className="hero-shows-block">
               <p className="hero-shows-heading">Favorites</p>
-              <div className="hero-shows-box">
-                <p className="hero-media-heading hero-media-heading-shows" aria-label="Shows">
-                  <span aria-hidden="true">🎬</span>
-                  Shows
-                </p>
-                <div className="hero-shows-grid">
-                  <div className="hero-show-item hero-show-item-arya">
-                    <div className="hero-float" data-quote="Winter is coming">
-                      <img src={showImageSrc("arya")} alt="Arya Stark from Game of Thrones" onError={() => onShowImageError("arya")} className="hero-float-base" />
-                    </div>
-                    <p className="hero-show-label">Game of Thrones</p>
-                  </div>
-                  <div className="hero-show-item hero-show-item-omar">
-                    <div className="hero-float" data-quote="A Man's gotta have a code">
-                      <img src={showImageSrc("omar")} alt="Omar Little from The Wire" onError={() => onShowImageError("omar")} className="hero-float-base" />
-                    </div>
-                    <p className="hero-show-label">The Wire</p>
-                  </div>
-                </div>
-              </div>
               <div className="hero-media-grid">
-                <div className="hero-media-group hero-media-group-books">
-                  <p className="hero-media-heading">
-                    <BookOpenText className="h-3.5 w-3.5" />
-                    Books
+                <div className="hero-shows-box">
+                  <p className="hero-media-heading hero-media-heading-shows" aria-label="Shows">
+                    <span aria-hidden="true">🎬</span>
+                    Shows
                   </p>
-                  <div className="hero-media-covers">
-                    {media.favoriteBooks.map((book) => (
-                      <figure key={book.title} className="hero-media-cover">
-                        <img src={book.cover} alt={book.title} className="hero-media-cover-img" />
-                      </figure>
-                    ))}
+                  <div className="hero-shows-grid">
+                    <div className="hero-show-item hero-show-item-arya">
+                      <div className="hero-float" data-quote="Winter is coming">
+                        <img src={showImageSrc("arya")} alt="Arya Stark from Game of Thrones" onError={() => onShowImageError("arya")} className="hero-float-base" />
+                      </div>
+                      <p className="hero-show-label">Game of Thrones</p>
+                    </div>
+                    <div className="hero-show-item hero-show-item-omar">
+                      <div className="hero-float" data-quote="A Man's gotta have a code">
+                        <img src={showImageSrc("omar")} alt="Omar Little from The Wire" onError={() => onShowImageError("omar")} className="hero-float-base" />
+                      </div>
+                      <p className="hero-show-label">The Wire</p>
+                    </div>
                   </div>
                 </div>
                 <div className="hero-media-group hero-media-group-podcasts">
@@ -640,6 +627,19 @@ export default function Home() {
                     {media.favoritePodcasts.map((podcast) => (
                       <figure key={podcast.title} className="hero-media-cover hero-media-cover-podcast">
                         <img src={podcast.cover} alt={podcast.title} className="hero-media-cover-img" />
+                      </figure>
+                    ))}
+                  </div>
+                </div>
+                <div className="hero-media-group hero-media-group-books hero-media-group-books-wide">
+                  <p className="hero-media-heading">
+                    <BookOpenText className="h-3.5 w-3.5" />
+                    Books
+                  </p>
+                  <div className="hero-media-covers">
+                    {media.favoriteBooks.map((book) => (
+                      <figure key={`${book.title}-wide`} className="hero-media-cover">
+                        <img src={book.cover} alt={book.title} className="hero-media-cover-img" />
                       </figure>
                     ))}
                   </div>
@@ -671,7 +671,11 @@ export default function Home() {
                     <div className="entry-links mt-3">
                       {itemLinks.map((link) => (
                         <a key={link.href} href={link.href} target="_blank" rel="noreferrer" className="entry-link-chip">
-                          {link.logo ? <img src={link.logo} alt="" className="entry-link-logo" loading="lazy" referrerPolicy="no-referrer" /> : null}
+                          {link.logo ? (
+                            <span className="entry-link-logo-shell">
+                              <img src={link.logo} alt="" className="entry-link-logo" loading="lazy" referrerPolicy="no-referrer" />
+                            </span>
+                          ) : null}
                           {link.label}
                           <span aria-hidden="true">↗</span>
                         </a>
@@ -869,7 +873,7 @@ export default function Home() {
                           const fallbackImage = getArtistFallbackImage(artist.name);
                           const imageSrc = !spotifyBrokenImages[artist.id] ? artist.image ?? fallbackImage : fallbackImage;
                           return (
-                            <li key={artist.id}>
+                            <li key={artist.id} className={`spotify-artist-slot spotify-artist-slot-${index + 1}`}>
                               <a href={artist.url} target="_blank" rel="noreferrer" className="spotify-artist-pill">
                                 <span className="spotify-index">{index + 1}</span>
                                 {imageSrc ? (
