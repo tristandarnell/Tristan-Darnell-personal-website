@@ -102,7 +102,7 @@ const ownerCache: OwnerCache = {
   staleUntil: 0,
   nextRetryAt: 0
 };
-const oEmbedThumbnailCache = new Map<string, string | null>();
+const artistThumbnailCache = new Map<string, string | null>();
 
 type ResponseOptions = {
   cacheControl?: string;
@@ -164,7 +164,7 @@ function isSpotifyArtistUrl(url: string) {
 }
 
 async function fetchArtistThumbnailFromOEmbed(artistUrl: string) {
-  const cached = oEmbedThumbnailCache.get(artistUrl);
+  const cached = artistThumbnailCache.get(artistUrl);
   if (cached !== undefined) {
     return cached;
   }
@@ -177,17 +177,51 @@ async function fetchArtistThumbnailFromOEmbed(artistUrl: string) {
       cache: "force-cache"
     });
     if (!response.ok) {
-      oEmbedThumbnailCache.set(artistUrl, null);
       return null;
     }
     const json = (await response.json()) as { thumbnail_url?: string | null };
-    const thumbnail = json.thumbnail_url ?? null;
-    oEmbedThumbnailCache.set(artistUrl, thumbnail);
-    return thumbnail;
+    return json.thumbnail_url ?? null;
   } catch {
-    oEmbedThumbnailCache.set(artistUrl, null);
     return null;
   }
+}
+
+async function fetchArtistThumbnailFromOpenGraph(artistUrl: string) {
+  try {
+    const response = await fetch(artistUrl, {
+      headers: {
+        "User-Agent": "tristan-portfolio/1.0"
+      },
+      cache: "force-cache"
+    });
+    if (!response.ok) {
+      return null;
+    }
+    const html = await response.text();
+    const ogImageMatch =
+      html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i) ??
+      html.match(/<meta\s+content="([^"]+)"\s+property="og:image"/i);
+    return ogImageMatch?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchArtistThumbnail(artistUrl: string) {
+  const cached = artistThumbnailCache.get(artistUrl);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const openGraphImage = await fetchArtistThumbnailFromOpenGraph(artistUrl);
+  if (openGraphImage) {
+    artistThumbnailCache.set(artistUrl, openGraphImage);
+    return openGraphImage;
+  }
+
+  const oEmbedImage = await fetchArtistThumbnailFromOEmbed(artistUrl);
+  artistThumbnailCache.set(artistUrl, oEmbedImage);
+  return oEmbedImage;
 }
 
 async function withFallbackArtistThumbnails(payload: SpotifyTopPayload) {
@@ -201,7 +235,7 @@ async function withFallbackArtistThumbnails(payload: SpotifyTopPayload) {
       if (artist.image || !isSpotifyArtistUrl(artist.url)) {
         return artist;
       }
-      const thumbnail = await fetchArtistThumbnailFromOEmbed(artist.url);
+      const thumbnail = await fetchArtistThumbnail(artist.url);
       if (!thumbnail) {
         return artist;
       }
