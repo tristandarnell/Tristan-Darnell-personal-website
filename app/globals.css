@@ -5,6 +5,7 @@
 :root {
   --scroll-parallax: 0px;
   --scroll-parallax-soft: 0px;
+  --section-nav-height: 2.7rem;
   --background: 208 78% 98%;
   --foreground: 222 47% 11%;
   --card: 0 0% 100%;
@@ -305,7 +306,10 @@ a {
 
 .menu-drawer-wrap {
   position: fixed;
-  inset: 4rem 0 0;
+  top: calc(4rem + var(--section-nav-height));
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 55;
   pointer-events: none;
   opacity: 0;
@@ -379,6 +383,37 @@ a {
   background: rgba(30, 41, 59, 0.78);
 }
 
+.dark .section-nav-wrap {
+  border-top-color: rgba(59, 130, 246, 0.3);
+  border-bottom-color: rgba(59, 130, 246, 0.42);
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.7), rgba(8, 27, 62, 0.66));
+}
+
+.dark .section-nav-link {
+  color: #cbd5e1;
+}
+
+.dark .section-nav-link:hover {
+  border-color: rgba(96, 165, 250, 0.7);
+  background: rgba(30, 58, 138, 0.32);
+  color: #eff6ff;
+}
+
+.dark .section-nav-link.is-active {
+  border-color: rgba(96, 165, 250, 0.82);
+  background: linear-gradient(145deg, rgba(30, 64, 175, 0.54), rgba(37, 99, 235, 0.38));
+  color: #bfdbfe;
+  box-shadow: 0 5px 14px rgba(30, 64, 175, 0.32);
+}
+
+.dark .section-progress-track {
+  background: rgba(71, 85, 105, 0.52);
+}
+
+.dark .section-progress-fill {
+  background: linear-gradient(90deg, rgba(96, 165, 250, 0.94), rgba(56, 189, 248, 0.88));
+}
+
 .menu-quick-actions {
   display: flex;
   gap: 0.55rem;
@@ -387,6 +422,70 @@ a {
 
 .menu-quick-actions > * {
   flex: 1;
+}
+
+.section-nav-wrap {
+  border-top: 1px solid rgba(191, 219, 254, 0.5);
+  border-bottom: 1px solid rgba(191, 219, 254, 0.62);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.72), rgba(224, 242, 254, 0.56));
+}
+
+.section-nav {
+  height: var(--section-nav-height);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.section-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.section-nav-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 0.32rem 0.76rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #334155;
+  transition: all 0.2s ease;
+}
+
+.section-nav-link:hover {
+  border-color: rgba(125, 211, 252, 0.85);
+  background: rgba(224, 242, 254, 0.72);
+  color: #0f172a;
+}
+
+.section-nav-link.is-active {
+  border-color: rgba(59, 130, 246, 0.82);
+  background: linear-gradient(145deg, rgba(219, 234, 254, 0.92), rgba(191, 219, 254, 0.78));
+  color: #1d4ed8;
+  box-shadow: 0 5px 14px rgba(37, 99, 235, 0.18);
+}
+
+.section-progress-track {
+  width: 100%;
+  height: 2px;
+  background: rgba(148, 163, 184, 0.3);
+  overflow: hidden;
+}
+
+.section-progress-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: left center;
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.94), rgba(14, 165, 233, 0.88));
+  transition: transform 0.18s ease-out;
 }
 
 .section-title {
@@ -1236,6 +1335,10 @@ a {
 }
 
 @media (max-width: 768px) {
+  :root {
+    --section-nav-height: 2.45rem;
+  }
+
   .menu-drawer {
     right: 1rem;
   }
@@ -1327,6 +1430,19 @@ a {
 }
 
 @media (max-width: 640px) {
+  :root {
+    --section-nav-height: 2.3rem;
+  }
+
+  .section-nav {
+    gap: 0.36rem;
+  }
+
+  .section-nav-link {
+    padding: 0.28rem 0.62rem;
+    font-size: 0.72rem;
+  }
+
   .spotify-strip-block,
   .spotify-table-block {
     border-radius: 12px;

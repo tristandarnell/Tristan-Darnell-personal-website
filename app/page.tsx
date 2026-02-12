@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Activity, Code2, Database, Github, Linkedin, Mail, Menu, Moon, Music4, Sun, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,12 @@ const navItems = [
   { href: "#resume-info", label: "Resume Info" },
   { href: "#personality", label: "Personality" },
   { href: "/photos", label: "Photos" }
+] as const;
+const sectionNavItems = [
+  { id: "experience", label: "Experience" },
+  { id: "projects", label: "Projects" },
+  { id: "resume-info", label: "Resume" },
+  { id: "personality", label: "Spotify" }
 ] as const;
 
 type SpotifyArtist = {
@@ -119,9 +125,12 @@ export default function Home() {
   const [homePhotoErrors, setHomePhotoErrors] = useState<boolean[]>(homePhotos.map(() => false));
   const [menuOpen, setMenuOpen] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [activeSection, setActiveSection] = useState<(typeof sectionNavItems)[number]["id"]>("experience");
+  const [scrollProgress, setScrollProgress] = useState(0);
   const [spotifyData, setSpotifyData] = useState<SpotifyTopResponse | null>(null);
   const [spotifyLoading, setSpotifyLoading] = useState(true);
   const [spotifyBrokenImages, setSpotifyBrokenImages] = useState<Record<string, boolean>>({});
+  const sectionIds = useMemo(() => sectionNavItems.map((item) => item.id), []);
   const spotifyDisplayData = hasSpotifyRows(spotifyData) ? spotifyData : null;
   const spotifyArtistCount = spotifyDisplayData?.artists.length ?? 0;
   const spotifyTrackCount = spotifyDisplayData?.tracks.length ?? 0;
@@ -176,6 +185,22 @@ export default function Home() {
     const updateScrollMetrics = () => {
       rafId = 0;
       const scrollTop = window.scrollY || root.scrollTop || 0;
+      const scrollMax = Math.max(1, root.scrollHeight - window.innerHeight);
+      const progress = Math.min(1, Math.max(0, scrollTop / scrollMax));
+      const sectionTrigger = window.innerHeight * 0.32;
+      let currentSection = sectionIds[0];
+      sectionIds.forEach((sectionId) => {
+        const target = document.getElementById(sectionId);
+        if (!target) {
+          return;
+        }
+        const top = target.getBoundingClientRect().top;
+        if (top - sectionTrigger <= 0) {
+          currentSection = sectionId;
+        }
+      });
+      setScrollProgress(progress);
+      setActiveSection((prev) => (prev === currentSection ? prev : currentSection));
       root.style.setProperty("--scroll-parallax", `${(scrollTop * 0.08).toFixed(2)}px`);
       root.style.setProperty("--scroll-parallax-soft", `${(scrollTop * 0.045).toFixed(2)}px`);
     };
@@ -198,7 +223,7 @@ export default function Home() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, []);
+  }, [sectionIds]);
 
   useEffect(() => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -398,6 +423,24 @@ export default function Home() {
             >
               {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>
+          </div>
+        </div>
+        <div className="section-nav-wrap">
+          <div className="container">
+            <nav className="section-nav" aria-label="Section navigation">
+              {sectionNavItems.map((item) => (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  className={`section-nav-link ${activeSection === item.id ? "is-active" : ""}`}
+                >
+                  {item.label}
+                </a>
+              ))}
+            </nav>
+            <div className="section-progress-track" aria-hidden="true">
+              <span className="section-progress-fill" style={{ transform: `scaleX(${scrollProgress})` }} />
+            </div>
           </div>
         </div>
         <div id="site-nav-drawer" className={`menu-drawer-wrap ${menuOpen ? "open" : ""}`}>
