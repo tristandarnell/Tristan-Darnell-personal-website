@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Activity, Code2, Database, Menu, Moon, Music4, Sun, X } from "lucide-react";
+import { Activity, Code2, Database, Github, Linkedin, Mail, Menu, Moon, Music4, Sun, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -403,15 +403,20 @@ export default function Home() {
                   </a>
                 </Button>
               </div>
-              <div className="hero-link-row">
-                <a className="hero-clean-link" href={linkedinUrl} target="_blank" rel="noreferrer">
-                  LinkedIn
+              <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
+                <a className="inline-flex items-center gap-2 transition-colors hover:text-foreground" href={linkedinUrl} target="_blank" rel="noreferrer">
+                  <Linkedin className="h-4 w-4" />
+                  <span className="tag-chip rounded-full px-2 py-0.5">LinkedIn</span>
                 </a>
-                <a className="hero-clean-link" href={githubUrl} target="_blank" rel="noreferrer">
-                  GitHub
+                <a className="inline-flex items-center gap-2 transition-colors hover:text-foreground" href={githubUrl} target="_blank" rel="noreferrer">
+                  <Github className="h-4 w-4" />
+                  <span className="tag-chip rounded-full px-2 py-0.5">GitHub</span>
                 </a>
-                <a className="hero-clean-link" href={`mailto:${profile.email}`}>
-                  Email
+                <a className="hero-email-link inline-flex items-center gap-2 transition-colors hover:text-foreground" href={`mailto:${profile.email}`}>
+                  <span className="hero-email-icon" aria-hidden="true">
+                    <Mail className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="tag-chip rounded-full px-2 py-0.5">Email</span>
                 </a>
               </div>
             </div>

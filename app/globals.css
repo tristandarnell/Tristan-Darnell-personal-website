@@ -400,46 +400,21 @@ a {
   box-shadow: 0 4px 10px rgba(56, 189, 248, 0.12);
 }
 
-.hero-link-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.7rem;
-  font-size: 0.93rem;
-}
-
-.hero-clean-link {
-  position: relative;
-  font-weight: 600;
+.hero-email-link {
   color: #0f172a;
-  padding-bottom: 0.1rem;
-  transition: color 0.2s ease;
 }
 
-.hero-clean-link::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -0.04rem;
-  height: 1px;
-  background: rgba(37, 99, 235, 0.5);
-  transform: scaleX(0.5);
-  transform-origin: left;
-  transition: transform 0.2s ease, background-color 0.2s ease;
-}
-
-.hero-clean-link:hover {
-  color: #1d4ed8;
-}
-
-.hero-clean-link:hover::after {
-  transform: scaleX(1);
-}
-
-.hero-clean-link + .hero-clean-link {
-  border-left: 1px solid rgba(148, 163, 184, 0.5);
-  padding-left: 0.7rem;
+.hero-email-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(37, 99, 235, 0.35);
+  background: linear-gradient(140deg, rgba(37, 99, 235, 0.95), rgba(14, 165, 233, 0.9));
+  color: #eff6ff;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.26);
 }
 
 .name-gradient {
@@ -726,20 +701,15 @@ a {
   color: #e2e8f0;
 }
 
-.dark .hero-clean-link {
+.dark .hero-email-link {
   color: #e2e8f0;
 }
 
-.dark .hero-clean-link:hover {
-  color: #bfdbfe;
-}
-
-.dark .hero-clean-link::after {
-  background: rgba(125, 211, 252, 0.55);
-}
-
-.dark .hero-clean-link + .hero-clean-link {
-  border-left-color: rgba(96, 165, 250, 0.45);
+.dark .hero-email-icon {
+  border-color: rgba(96, 165, 250, 0.55);
+  background: linear-gradient(140deg, rgba(59, 130, 246, 0.88), rgba(14, 165, 233, 0.8));
+  color: #f8fafc;
+  box-shadow: 0 3px 10px rgba(14, 165, 233, 0.28);
 }
 
 .dark .text-slate-900 {
