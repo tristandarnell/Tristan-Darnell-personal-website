@@ -407,42 +407,44 @@ export default function Home() {
                   <p className="spotify-state">Spotify data is unavailable right now. Check back shortly.</p>
                 ) : (
                   <>
-                    <div className="spotify-grid">
-                      <section className="spotify-panel">
-                        <p className="spotify-panel-label">Top Artists</p>
-                        <ul className="spotify-list">
-                          {spotifyData.artists.map((artist, index) => (
-                            <li key={artist.id} className="spotify-row">
-                              <span className="spotify-rank">{index + 1}</span>
+                    <section className="spotify-strip-block">
+                      <p className="spotify-panel-label">Top Artists</p>
+                      <ul className="spotify-artist-rail">
+                        {spotifyData.artists.map((artist, index) => (
+                          <li key={artist.id}>
+                            <a href={artist.url} target="_blank" rel="noreferrer" className="spotify-artist-pill">
+                              <span className="spotify-index">{index + 1}</span>
                               {artist.image ? (
                                 <img src={artist.image} alt={artist.name} className="spotify-avatar" />
                               ) : (
                                 <span className="spotify-avatar spotify-avatar-fallback" />
                               )}
-                              <a href={artist.url} target="_blank" rel="noreferrer" className="spotify-link truncate">
-                                {artist.name}
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
-                      </section>
-                      <section className="spotify-panel">
-                        <p className="spotify-panel-label">Top Songs</p>
-                        <ul className="spotify-list">
-                          {spotifyData.tracks.map((track, index) => (
-                            <li key={track.id} className="spotify-row spotify-track-row">
-                              <span className="spotify-rank">{index + 1}</span>
-                              <div className="min-w-0">
-                                <a href={track.url} target="_blank" rel="noreferrer" className="spotify-link block truncate">
-                                  {track.name}
-                                </a>
-                                <p className="spotify-meta truncate">{track.artists.join(", ")}</p>
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      </section>
-                    </div>
+                              <span className="spotify-link truncate">{artist.name}</span>
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+
+                    <section className="spotify-table-block">
+                      <div className="spotify-table-head">
+                        <span>#</span>
+                        <span>Song</span>
+                        <span>Artist</span>
+                      </div>
+                      <ul className="spotify-table-list">
+                        {spotifyData.tracks.map((track, index) => (
+                          <li key={track.id} className="spotify-table-row">
+                            <span className="spotify-index">{index + 1}</span>
+                            <a href={track.url} target="_blank" rel="noreferrer" className="spotify-link truncate">
+                              {track.name}
+                            </a>
+                            <span className="spotify-artist-text truncate">{track.artists.join(", ")}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+
                     {spotifyData.profile ? (
                       <a href={spotifyData.profile.url} target="_blank" rel="noreferrer" className="spotify-profile-link">
                         Open {spotifyData.profile.displayName}&apos;s Spotify profile
