@@ -605,7 +605,8 @@ a {
   top: auto;
   right: auto;
   bottom: auto;
-  width: min(100%, 350px);
+  width: 100%;
+  max-width: 420px;
   display: grid;
   gap: 0.22rem;
   align-items: center;
@@ -640,17 +641,20 @@ a {
 .hero-media-grid {
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.9fr);
   grid-template-areas:
-    "shows shows"
-    "books podcasts";
+    "shows podcasts"
+    "books books";
   gap: 0.22rem;
-  align-items: start;
+  align-items: stretch;
 }
 
 .hero-media-group {
   min-width: 0;
   width: 100%;
+  min-height: 0;
+  display: grid;
+  align-content: start;
   overflow: hidden;
   border-radius: 8px;
   border: 1px solid rgba(147, 197, 253, 0.64);
@@ -663,6 +667,7 @@ a {
   width: 100%;
   max-width: none;
   justify-self: stretch;
+  grid-template-rows: auto 1fr;
 }
 
 .hero-media-heading {
@@ -695,11 +700,12 @@ a {
 .hero-media-group-podcasts .hero-media-covers {
   grid-template-columns: minmax(0, 1fr);
   justify-items: center;
+  align-content: center;
 }
 
 .hero-media-group-podcasts .hero-media-cover {
   width: auto;
-  max-width: 96px;
+  max-width: 104px;
   justify-self: center;
 }
 
@@ -1640,7 +1646,7 @@ a {
   }
 }
 
-@media (max-width: 1360px) {
+@media (max-width: 1120px) {
   .hero-section {
     padding-top: 0.9rem;
     padding-bottom: 32px;
@@ -1662,7 +1668,7 @@ a {
     top: auto;
     right: auto;
     bottom: auto;
-    width: min(100%, 350px);
+    width: min(100%, 520px);
     gap: 0.24rem;
     justify-items: center;
     justify-content: center;
@@ -1674,11 +1680,11 @@ a {
   }
 
   .hero-media-grid {
-    width: min(100%, 350px);
+    width: min(100%, 520px);
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
     grid-template-areas:
-      "shows shows"
-      "books podcasts";
+      "shows podcasts"
+      "books books";
     gap: 0.22rem;
   }
 
@@ -1759,16 +1765,6 @@ a {
 
 }
 
-@media (max-width: 1180px) {
-  .hero-shows-grid {
-    gap: 0.24rem;
-  }
-
-  .hero-media-grid {
-    width: min(100%, 338px);
-  }
-}
-
 @media (max-width: 960px) {
   .hero-section {
     padding-top: 0.75rem;
@@ -1781,12 +1777,11 @@ a {
   }
 
   .hero-media-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
     grid-template-areas:
-      "shows"
-      "podcasts"
-      "books";
-    width: min(100%, 286px);
+      "shows podcasts"
+      "books books";
+    width: min(100%, 420px);
     gap: 0.22rem;
   }
 
@@ -1817,6 +1812,17 @@ a {
   .hero-show-label {
     font-size: 0.54rem;
     padding: 0.08rem 0.22rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .hero-media-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "shows"
+      "podcasts"
+      "books";
+    width: min(100%, 340px);
   }
 }
 
