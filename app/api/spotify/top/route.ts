@@ -10,6 +10,9 @@ import {
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+const SPOTIFY_ACCOUNTS_URL = "https://accounts.spotify.com";
+const SPOTIFY_API_URL = "https://api.spotify.com/v1";
+
 type TopRoutePayload = SpotifyTopPayload & {
   reason?: string;
   mode?: "owner" | "none";
@@ -20,6 +23,18 @@ type OwnerCache = {
   expiresAt: number;
   staleUntil: number;
   nextRetryAt: number;
+};
+
+type SpotifyClientTokenResponse = {
+  access_token: string;
+  expires_in: number;
+};
+
+type ArtistsLookupResponse = {
+  artists: Array<{
+    id: string;
+    images?: Array<{ url: string }>;
+  }>;
 };
 
 const OWNER_FALLBACK_PAYLOAD: SpotifyTopPayload = {
@@ -102,6 +117,11 @@ const ownerCache: OwnerCache = {
   staleUntil: 0,
   nextRetryAt: 0
 };
+const appTokenCache = {
+  token: null as string | null,
+  expiresAt: 0
+};
+const fallbackArtistImageCache = new Map<string, string>();
 
 type ResponseOptions = {
   cacheControl?: string;
@@ -158,9 +178,105 @@ function ownerCachePayload(): TopRoutePayload | null {
   };
 }
 
-function ownerFallbackPayload(reason: string): TopRoutePayload {
+function parseArtistIdFromUrl(artistUrl: string) {
+  const match = artistUrl.match(/open\.spotify\.com\/artist\/([a-zA-Z0-9]+)/);
+  return match?.[1] ?? null;
+}
+
+function spotifyAuthHeader(clientId: string, clientSecret: string) {
+  return `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`;
+}
+
+async function getSpotifyAppAccessToken() {
+  const now = Date.now();
+  if (appTokenCache.token && now < appTokenCache.expiresAt) {
+    return appTokenCache.token;
+  }
+
+  const config = getSpotifyConfig();
+  if (!config) {
+    return null;
+  }
+
+  const body = new URLSearchParams({ grant_type: "client_credentials" });
+  const response = await fetch(`${SPOTIFY_ACCOUNTS_URL}/api/token`, {
+    method: "POST",
+    headers: {
+      Authorization: spotifyAuthHeader(config.clientId, config.clientSecret),
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const json = (await response.json()) as SpotifyClientTokenResponse;
+  appTokenCache.token = json.access_token;
+  appTokenCache.expiresAt = now + Math.max(60, json.expires_in - 60) * 1000;
+  return appTokenCache.token;
+}
+
+async function fetchArtistImagesByIds(artistIds: string[]) {
+  const uniqueIds = Array.from(new Set(artistIds.filter(Boolean)));
+  const imageByArtistId = new Map<string, string>();
+  if (!uniqueIds.length) {
+    return imageByArtistId;
+  }
+
+  const accessToken = await getSpotifyAppAccessToken();
+  if (!accessToken) {
+    return imageByArtistId;
+  }
+
+  const query = new URLSearchParams({ ids: uniqueIds.join(",") });
+  const response = await fetch(`${SPOTIFY_API_URL}/artists?${query.toString()}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    },
+    cache: "no-store"
+  });
+  if (!response.ok) {
+    return imageByArtistId;
+  }
+
+  const json = (await response.json()) as ArtistsLookupResponse;
+  json.artists.forEach((artist) => {
+    const image = artist.images?.[0]?.url;
+    if (image) {
+      imageByArtistId.set(artist.id, image);
+      fallbackArtistImageCache.set(artist.id, image);
+    }
+  });
+  return imageByArtistId;
+}
+
+async function ownerFallbackPayload(reason: string): Promise<TopRoutePayload> {
+  const fallbackArtists = OWNER_FALLBACK_PAYLOAD.artists;
+  const artistIdsNeedingLookup = fallbackArtists
+    .map((artist) => parseArtistIdFromUrl(artist.url))
+    .filter((artistId): artistId is string => Boolean(artistId))
+    .filter((artistId) => !fallbackArtistImageCache.has(artistId));
+  if (artistIdsNeedingLookup.length > 0) {
+    await fetchArtistImagesByIds(artistIdsNeedingLookup);
+  }
+
+  const artists = fallbackArtists.map((artist) => {
+    const artistId = parseArtistIdFromUrl(artist.url);
+    if (!artistId) {
+      return artist;
+    }
+    const resolvedImage = fallbackArtistImageCache.get(artistId);
+    return {
+      ...artist,
+      image: resolvedImage ?? artist.image
+    };
+  });
+
   return {
     ...OWNER_FALLBACK_PAYLOAD,
+    artists,
     mode: "owner",
     reason
   };
@@ -192,7 +308,7 @@ export async function GET(request: NextRequest) {
   try {
     const ownerRefreshToken = process.env.SPOTIFY_REFRESH_TOKEN?.trim();
     if (!ownerRefreshToken) {
-      return responseWithPayload(ownerFallbackPayload("owner_refresh_token_missing"), {
+      return responseWithPayload(await ownerFallbackPayload("owner_refresh_token_missing"), {
         cacheControl: "public, s-maxage=600, stale-while-revalidate=3600"
       });
     }
@@ -216,7 +332,7 @@ export async function GET(request: NextRequest) {
           retryAfterSeconds: retrySeconds
         });
       }
-      return responseWithPayload(ownerFallbackPayload("owner_rate_limited_backoff"), {
+      return responseWithPayload(await ownerFallbackPayload("owner_rate_limited_backoff"), {
         cacheControl: rateLimitCacheControl(retrySeconds),
         retryAfterSeconds: retrySeconds
       });
@@ -230,7 +346,7 @@ export async function GET(request: NextRequest) {
           cacheControl: "public, s-maxage=180, stale-while-revalidate=1800"
         });
       }
-      return responseWithPayload(ownerFallbackPayload("owner_refresh_failed"), {
+      return responseWithPayload(await ownerFallbackPayload("owner_refresh_failed"), {
         cacheControl: "public, s-maxage=300, stale-while-revalidate=1800"
       });
     }
@@ -264,7 +380,7 @@ export async function GET(request: NextRequest) {
           retryAfterSeconds: retrySeconds
         });
       }
-      return responseWithPayload(ownerFallbackPayload(failureReason), {
+      return responseWithPayload(await ownerFallbackPayload(failureReason), {
         cacheControl: rateLimitCacheControl(retrySeconds),
         retryAfterSeconds: retrySeconds
       });
@@ -277,11 +393,11 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    return responseWithPayload(ownerFallbackPayload(failureReason), {
+    return responseWithPayload(await ownerFallbackPayload(failureReason), {
       cacheControl: "public, s-maxage=300, stale-while-revalidate=1800"
     });
   } catch {
-    return responseWithPayload(ownerFallbackPayload("owner_unexpected_error"), {
+    return responseWithPayload(await ownerFallbackPayload("owner_unexpected_error"), {
       cacheControl: "public, s-maxage=300, stale-while-revalidate=1800"
     });
   }
