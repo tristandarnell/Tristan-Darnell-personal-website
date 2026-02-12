@@ -70,6 +70,10 @@ body {
   line-height: 1.6;
 }
 
+img {
+  max-width: 100%;
+}
+
 .dark body {
   background:
     radial-gradient(circle at 10% 8%, rgba(37, 99, 235, 0.24), transparent 28%),
@@ -672,16 +676,16 @@ a {
 .spotify-artist-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.46rem;
+  gap: 0.56rem;
   min-width: max-content;
   border-radius: 999px;
   border: 1px solid rgba(147, 197, 253, 0.84);
   background: rgba(255, 255, 255, 0.86);
-  padding: 0.34rem 0.6rem 0.34rem 0.45rem;
+  padding: 0.36rem 0.72rem 0.36rem 0.52rem;
 }
 
 .spotify-index {
-  width: 1.1rem;
+  width: 1.2rem;
   font-size: 0.76rem;
   font-weight: 700;
   color: #64748b;
@@ -785,12 +789,12 @@ a {
 }
 
 .spotify-avatar {
-  width: 1.9rem;
-  height: 1.9rem;
+  width: 2.35rem;
+  height: 2.35rem;
   border-radius: 999px;
   object-fit: cover;
   border: 1px solid rgba(147, 197, 253, 0.7);
-  flex: 0 0 1.9rem;
+  flex: 0 0 2.35rem;
 }
 
 .spotify-avatar-fallback {
@@ -801,6 +805,7 @@ a {
   color: #0f172a;
   font-weight: 600;
   transition: color 0.2s ease;
+  min-width: 0;
 }
 
 .spotify-link:hover {
@@ -960,6 +965,19 @@ a {
     right: 1rem;
   }
 
+  .playful-shell::before,
+  .playful-shell::after {
+    display: none;
+  }
+
+  .section {
+    gap: 1.35rem;
+  }
+
+  .section-title {
+    font-size: clamp(1.5rem, 5.6vw, 1.95rem);
+  }
+
   .tilt-left,
   .tilt-right,
   .tilt-soft {
@@ -980,6 +998,12 @@ a {
     grid-template-columns: 1.65rem minmax(0, 1.35fr) minmax(0, 1fr);
     gap: 0.48rem;
     padding-inline: 0.62rem;
+  }
+
+  .spotify-avatar {
+    width: 2.05rem;
+    height: 2.05rem;
+    flex-basis: 2.05rem;
   }
 }
 
@@ -1025,22 +1049,33 @@ a {
 
 @media (max-width: 960px) {
   .hero-section {
-    padding-bottom: 196px;
+    padding-bottom: 28px;
   }
 
   .hero-section > .max-w-3xl {
     padding-right: 0;
   }
 
+  .hero-float-layer {
+    position: static;
+    inset: auto;
+    margin-bottom: 0.55rem;
+  }
+
   .hero-shows-block {
+    position: static;
     top: auto;
-    right: 4%;
-    bottom: 8px;
-    gap: 0.3rem;
+    right: auto;
+    bottom: auto;
+    gap: 0.38rem;
+    justify-items: start;
   }
 
   .hero-shows-grid {
-    gap: 0.45rem;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: flex-start;
   }
 
   .hero-float {
@@ -1051,49 +1086,52 @@ a {
   .hero-shows-heading {
     font-size: 0.72rem;
     padding: 0.2rem 0.52rem;
+    animation: none;
   }
 
-  .hero-show-item-arya {
-    margin-bottom: 48px;
+  .hero-show-item-arya,
+  .hero-show-item-omar {
+    margin-bottom: 0;
   }
 
   .hero-show-item-arya .hero-float {
-    width: clamp(90px, 20vw, 126px);
-    height: calc(clamp(90px, 20vw, 126px) * 1.25);
+    width: clamp(88px, 19vw, 120px);
+    height: calc(clamp(88px, 19vw, 120px) * 1.25);
   }
 
   .hero-show-item-omar .hero-float {
-    width: clamp(86px, 19vw, 118px);
-    height: calc(clamp(86px, 19vw, 118px) * 1.25);
+    width: clamp(84px, 18vw, 112px);
+    height: calc(clamp(84px, 18vw, 112px) * 1.25);
   }
 
   .hero-show-label {
-    font-size: 0.6rem;
+    font-size: 0.62rem;
     padding: 0.14rem 0.4rem;
   }
 }
 
 @media (max-width: 640px) {
-  .hero-section {
-    padding-bottom: 168px;
-  }
-
-  .hero-shows-block {
-    right: 3%;
-  }
-
-  .hero-show-item-arya {
-    margin-bottom: 40px;
-  }
-
   .hero-show-item-arya .hero-float {
-    width: clamp(78px, 23vw, 98px);
-    height: calc(clamp(78px, 23vw, 98px) * 1.25);
+    width: clamp(78px, 22vw, 94px);
+    height: calc(clamp(78px, 22vw, 94px) * 1.25);
   }
 
   .hero-show-item-omar .hero-float {
-    width: clamp(74px, 22vw, 94px);
-    height: calc(clamp(74px, 22vw, 94px) * 1.25);
+    width: clamp(72px, 21vw, 88px);
+    height: calc(clamp(72px, 21vw, 88px) * 1.25);
+  }
+
+  .hero-personal-photos {
+    max-width: 100%;
+    gap: 0.6rem;
+  }
+
+  .hero-photo-chip {
+    width: min(44vw, 160px);
+  }
+
+  .hero-photo-img {
+    height: 132px;
   }
 }
 

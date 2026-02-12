@@ -60,7 +60,7 @@ export default function PhotosPage() {
       <main className="section gap-8 pt-10">
         <div className="section-heading">
           <Badge className="w-fit">Photos</Badge>
-          <h1 className="section-title text-4xl font-semibold text-slate-900">More Photos</h1>
+          <h1 className="section-title text-4xl font-semibold text-slate-900">Photos</h1>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {galleryPhotos.map((photo, idx) => (
