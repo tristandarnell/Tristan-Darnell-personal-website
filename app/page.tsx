@@ -168,8 +168,17 @@ function hasSpotifyRows(data: SpotifyTopResponse | null | undefined) {
   return Boolean(data.connected) || data.artists.length > 0 || data.tracks.length > 0;
 }
 
+function normalizeArtistName(name: string) {
+  return name
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^\w\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function getArtistFallbackImage(artistName: string) {
-  return SPOTIFY_ARTIST_IMAGE_FALLBACKS[artistName.toLowerCase()] ?? null;
+  return SPOTIFY_ARTIST_IMAGE_FALLBACKS[normalizeArtistName(artistName)] ?? null;
 }
 
 function withSpotifyFallback(data: SpotifyTopResponse | null | undefined): SpotifyTopResponse {
@@ -244,9 +253,41 @@ export default function Home() {
   const [spotifyBrokenImages, setSpotifyBrokenImages] = useState<Record<string, boolean>>({});
   const spotifyDisplayData = hasSpotifyRows(spotifyData) ? spotifyData : null;
   const spotifyTopArtists = spotifyDisplayData?.artists ?? [];
-  const spotifyTopTracks = (spotifyDisplayData?.tracks ?? []).slice(0, 5);
-  const spotifyTopArtistsRows = [spotifyTopArtists.slice(0, 3), spotifyTopArtists.slice(3, 5)];
-  const spotifyArtistCount = spotifyTopArtists.length;
+  const spotifyArtistsForUi = Array.from({ length: 5 }, (_, index) => {
+    const slotFallback = SPOTIFY_UI_FALLBACK.artists[index];
+    const liveArtist = spotifyTopArtists[index];
+    const safeName = liveArtist?.name?.trim() ? liveArtist.name.trim() : slotFallback.name;
+    const safeUrl = liveArtist?.url?.trim() ? liveArtist.url : slotFallback.url;
+    const safeId = liveArtist?.id?.trim() ? liveArtist.id : slotFallback.id;
+    const fallbackImage =
+      getArtistFallbackImage(safeName) ??
+      SPOTIFY_UI_FALLBACK.artists.find(
+        (fallbackArtist) => normalizeArtistName(fallbackArtist.name) === normalizeArtistName(safeName)
+      )?.image ??
+      slotFallback.image ??
+      null;
+    return {
+      id: safeId,
+      name: safeName,
+      url: safeUrl,
+      image: liveArtist?.image ?? fallbackImage
+    };
+  });
+  const spotifyTopTracks = Array.from({ length: 5 }, (_, index) => {
+    const liveTrack = spotifyDisplayData?.tracks?.[index];
+    const fallbackTrack = SPOTIFY_UI_FALLBACK.tracks[index];
+    if (!liveTrack) {
+      return fallbackTrack;
+    }
+    return {
+      id: liveTrack.id?.trim() ? liveTrack.id : fallbackTrack.id,
+      name: liveTrack.name?.trim() ? liveTrack.name : fallbackTrack.name,
+      artists: liveTrack.artists?.length ? liveTrack.artists : fallbackTrack.artists,
+      url: liveTrack.url?.trim() ? liveTrack.url : fallbackTrack.url
+    };
+  });
+  const spotifyTopArtistsRows = [spotifyArtistsForUi.slice(0, 3), spotifyArtistsForUi.slice(3, 5)];
+  const spotifyArtistCount = spotifyArtistsForUi.length;
   const spotifyTrackCount = spotifyTopTracks.length;
   const linkedinUrl = profile.links.find((link) => link.label === "LinkedIn")?.href ?? "#";
   const githubUrl = profile.links.find((link) => link.label === "GitHub")?.href ?? "#";
@@ -556,9 +597,9 @@ export default function Home() {
               <h1 className="name-gradient text-4xl font-semibold leading-tight sm:text-5xl">{profile.name}</h1>
               <p className="tagline-badge text-sm text-muted">{profile.tagline}</p>
               <div className="hero-personal-photos">
-                <svg className="hero-photo-connector" viewBox="0 0 100 40" aria-hidden="true">
-                  <line x1="50" y1="0" x2="33" y2="36" />
-                  <line x1="50" y1="0" x2="67" y2="36" />
+                <svg className="hero-photo-connector" viewBox="0 0 100 44" aria-hidden="true">
+                  <line x1="50" y1="1" x2="25" y2="43" />
+                  <line x1="50" y1="1" x2="75" y2="43" />
                 </svg>
                 {homePhotos.map((photo, idx) => (
                   <figure key={photo.src} className={`hero-photo-chip ${idx === 0 ? "hero-photo-left" : "hero-photo-right"}`}>
@@ -877,9 +918,17 @@ export default function Home() {
                         {spotifyTopArtistsRows.map((row, rowIndex) => (
                           <ul key={`artist-row-${rowIndex}`} className={`spotify-artist-row spotify-artist-row-${rowIndex + 1}`}>
                             {row.map((artist, artistIndex) => {
-                              const fallbackImage = getArtistFallbackImage(artist.name);
-                              const imageSrc = !spotifyBrokenImages[artist.id] ? artist.image ?? fallbackImage : fallbackImage;
                               const rank = rowIndex === 0 ? artistIndex + 1 : artistIndex + 4;
+                              const slotFallback = SPOTIFY_UI_FALLBACK.artists[rank - 1];
+                              const artistName = artist.name.trim() || slotFallback?.name || "Spotify Artist";
+                              const fallbackImage =
+                                getArtistFallbackImage(artistName) ??
+                                SPOTIFY_UI_FALLBACK.artists.find(
+                                  (fallbackArtist) => normalizeArtistName(fallbackArtist.name) === normalizeArtistName(artistName)
+                                )?.image ??
+                                slotFallback?.image ??
+                                null;
+                              const imageSrc = !spotifyBrokenImages[artist.id] ? artist.image ?? fallbackImage : fallbackImage;
                               return (
                                 <li key={artist.id}>
                                   <a href={artist.url} target="_blank" rel="noreferrer" className="spotify-artist-pill">
@@ -894,10 +943,10 @@ export default function Home() {
                                       />
                                     ) : (
                                       <span className="spotify-avatar spotify-avatar-fallback" aria-hidden="true">
-                                        {artist.name.charAt(0)}
+                                        {artistName.charAt(0)}
                                       </span>
                                     )}
-                                    <span className="spotify-link truncate">{artist.name}</span>
+                                    <span className="spotify-link truncate">{artistName}</span>
                                   </a>
                                 </li>
                               );
@@ -929,7 +978,7 @@ export default function Home() {
                 )}
               </CardContent>
             </Card>
-            <Card className="photo-card photo-cta-card h-full min-w-0 p-5">
+            <Card className="photo-card photo-cta-card min-w-0 p-5">
               <CardHeader className="p-0 pb-4">
                 <CardTitle className="text-2xl text-slate-900">Photography</CardTitle>
                 <CardDescription className="text-base text-muted">A few film and landscape shots from my collection.</CardDescription>
