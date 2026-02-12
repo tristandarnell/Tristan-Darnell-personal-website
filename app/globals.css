@@ -3,7 +3,6 @@
 @tailwind utilities;
 
 :root {
-  --scroll-progress: 0;
   --scroll-parallax: 0px;
   --scroll-parallax-soft: 0px;
   --background: 208 78% 98%;
@@ -129,6 +128,10 @@ a {
   z-index: 1;
 }
 
+.section > * {
+  min-width: 0;
+}
+
 .section-heading {
   @apply flex flex-col gap-2;
 }
@@ -176,20 +179,6 @@ a {
 
 .playful-shell {
   position: relative;
-}
-
-.scroll-progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  z-index: 80;
-  pointer-events: none;
-  transform-origin: 0 50%;
-  transform: scaleX(var(--scroll-progress));
-  background: linear-gradient(90deg, rgba(14, 165, 233, 0.95), rgba(37, 99, 235, 0.95), rgba(96, 165, 250, 0.95));
-  box-shadow: 0 0 16px rgba(59, 130, 246, 0.44);
 }
 
 .playful-shell::before {
@@ -627,6 +616,10 @@ a {
   width: 100%;
   height: 150px;
   object-fit: cover;
+}
+
+.experience-timeline {
+  min-width: 0;
 }
 
 @keyframes photo-pop {
@@ -1098,6 +1091,10 @@ a {
     gap: 1.35rem;
   }
 
+  .container {
+    padding-inline: clamp(0.82rem, 3.8vw, 1.15rem);
+  }
+
   .section-title {
     font-size: clamp(1.5rem, 5.6vw, 1.95rem);
   }
@@ -1139,6 +1136,22 @@ a {
   .spotify-table-head,
   .spotify-table-row {
     grid-template-columns: 1.65rem minmax(0, 1fr) minmax(0, 0.9fr);
+  }
+}
+
+@media (max-width: 1360px) {
+  .hero-section > .max-w-3xl {
+    padding-right: clamp(136px, 18vw, 250px);
+  }
+
+  .hero-show-item-arya .hero-float {
+    width: clamp(132px, 16.5vw, 208px);
+    height: calc(clamp(132px, 16.5vw, 208px) * 1.25);
+  }
+
+  .hero-show-item-omar .hero-float {
+    width: clamp(114px, 14.5vw, 178px);
+    height: calc(clamp(114px, 14.5vw, 178px) * 1.25);
   }
 }
 
@@ -1332,15 +1345,52 @@ a {
   .hero-photo-img {
     height: 132px;
   }
+
+  .photos-header-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .photos-main {
+    padding-top: 1.6rem;
+  }
+
+  .photos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .photos-image {
+    height: clamp(250px, 58vw, 340px);
+  }
+}
+
+@media (max-width: 520px) {
+  .menu-quick-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .experience-timeline {
+    margin-left: 0.2rem;
+    padding-left: 1rem;
+  }
+
+  .experience-timeline > div > span {
+    left: -16px;
+  }
+
+  .hero-personal-photos {
+    justify-content: center;
+  }
+
+  .hero-photo-chip {
+    width: min(72vw, 220px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
-  }
-
-  .scroll-progress {
-    display: none;
   }
 
   .scroll-effects-ready .reveal-on-scroll,

@@ -22,7 +22,7 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tristan Darnell | Engineer & Quant Builder",
+  title: "Tristan Darnell | Software Engineer",
   description:
     "Next.js portfolio for Tristan Darnell — marketplace automation, quant research systems, and end-to-end product builds."
 };

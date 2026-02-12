@@ -158,9 +158,6 @@ export default function Home() {
     const updateScrollMetrics = () => {
       rafId = 0;
       const scrollTop = window.scrollY || root.scrollTop || 0;
-      const maxScrollable = Math.max(1, root.scrollHeight - window.innerHeight);
-      const progress = Math.min(1, scrollTop / maxScrollable);
-      root.style.setProperty("--scroll-progress", progress.toFixed(4));
       root.style.setProperty("--scroll-parallax", `${(scrollTop * 0.08).toFixed(2)}px`);
       root.style.setProperty("--scroll-parallax-soft", `${(scrollTop * 0.045).toFixed(2)}px`);
     };
@@ -355,7 +352,6 @@ export default function Home() {
 
   return (
     <div className="playful-shell relative min-h-screen">
-      <div className="scroll-progress" aria-hidden="true" />
       <header className="playful-header sticky top-0 z-50 border-b border-border/90 backdrop-blur">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-3">
@@ -487,7 +483,7 @@ export default function Home() {
           <div className="section-heading">
             <h2 className="section-title text-3xl font-semibold text-slate-900">Experience</h2>
           </div>
-          <div className="relative ml-2 border-l border-blue-100 pl-7">
+          <div className="experience-timeline relative ml-2 border-l border-blue-100 pl-7">
             {experience.map((item) => (
               <div key={item.role} className="relative mb-5 rounded-2xl border border-blue-100 bg-white p-5 shadow-soft last:mb-0">
                 <span className="absolute -left-[34px] top-6 h-3.5 w-3.5 rounded-full bg-primary" />
@@ -512,7 +508,7 @@ export default function Home() {
             <h2 className="section-title text-3xl font-semibold text-slate-900">Projects</h2>
             <p className="max-w-3xl text-muted">Systems work across trading research, automation, and data infrastructure.</p>
           </div>
-          <div className="grid gap-5 lg:grid-cols-3">
+          <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
             {projects.map((project, index) => {
               const Icon = projectIcons[index % projectIcons.length];
               return (

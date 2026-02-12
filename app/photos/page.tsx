@@ -31,12 +31,12 @@ export default function PhotosPage() {
   return (
     <div className="playful-shell min-h-screen pb-16">
       <header className="playful-header sticky top-0 z-50 border-b border-border/90 backdrop-blur">
-        <div className="container flex h-16 items-center justify-between">
+        <div className="container flex h-16 flex-wrap items-center justify-between gap-2">
           <div className="leading-tight">
             <p className="name-gradient text-base font-semibold">{profile.name}</p>
             <p className="text-xs text-muted">Photos</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="photos-header-actions flex items-center gap-2">
             <button
               type="button"
               className="header-icon-btn"
@@ -56,11 +56,11 @@ export default function PhotosPage() {
         </div>
       </header>
 
-      <main className="section gap-8 pt-10">
+      <main className="section photos-main gap-8 pt-10">
         <div className="section-heading">
           <h1 className="section-title text-4xl font-semibold text-slate-900">Photos</h1>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="photos-grid grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {galleryPhotos.map((photo, idx) => (
             <figure
               key={photo.src}
@@ -71,7 +71,7 @@ export default function PhotosPage() {
                 src={photoSrc(idx)}
                 alt={photo.alt}
                 onError={() => onPhotoError(idx)}
-                className="h-[320px] w-full rounded-lg border border-blue-100 object-cover md:h-[360px]"
+                className="photos-image h-[320px] w-full rounded-lg border border-blue-100 object-cover md:h-[360px]"
               />
             </figure>
           ))}
