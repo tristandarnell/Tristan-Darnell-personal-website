@@ -22,17 +22,79 @@ type OwnerCache = {
   nextRetryAt: number;
 };
 
-const EMPTY_RESPONSE: TopRoutePayload = {
-  connected: false,
-  artists: [],
-  tracks: [],
-  profile: null,
-  mode: "none"
+const OWNER_FALLBACK_PAYLOAD: SpotifyTopPayload = {
+  connected: true,
+  artists: [
+    {
+      id: "fallback-dominic-fike",
+      name: "Dominic Fike",
+      image: null,
+      url: "https://open.spotify.com/search/Dominic%20Fike"
+    },
+    {
+      id: "fallback-kanye-west",
+      name: "Kanye West",
+      image: null,
+      url: "https://open.spotify.com/search/Kanye%20West"
+    },
+    {
+      id: "fallback-the-weeknd",
+      name: "The Weeknd",
+      image: null,
+      url: "https://open.spotify.com/search/The%20Weeknd"
+    },
+    {
+      id: "fallback-don-toliver",
+      name: "Don Toliver",
+      image: null,
+      url: "https://open.spotify.com/search/Don%20Toliver"
+    },
+    {
+      id: "fallback-mac-miller",
+      name: "Mac Miller",
+      image: null,
+      url: "https://open.spotify.com/search/Mac%20Miller"
+    }
+  ],
+  tracks: [
+    {
+      id: "fallback-best-you-had",
+      name: "Best You Had",
+      artists: ["Don Toliver"],
+      url: "https://open.spotify.com/search/Best%20You%20Had%20Don%20Toliver"
+    },
+    {
+      id: "fallback-often",
+      name: "Often",
+      artists: ["The Weeknd"],
+      url: "https://open.spotify.com/search/Often%20The%20Weeknd"
+    },
+    {
+      id: "fallback-bodies",
+      name: "Bodies",
+      artists: ["Dominic Fike"],
+      url: "https://open.spotify.com/search/Bodies%20Dominic%20Fike"
+    },
+    {
+      id: "fallback-novacane",
+      name: "Novacane",
+      artists: ["Frank Ocean"],
+      url: "https://open.spotify.com/search/Novacane%20Frank%20Ocean"
+    },
+    {
+      id: "fallback-cough-syrup",
+      name: "Cough Syrup",
+      artists: ["Young the Giant"],
+      url: "https://open.spotify.com/search/Cough%20Syrup%20Young%20the%20Giant"
+    }
+  ],
+  profile: null
 };
 
 const OWNER_CACHE_TTL_MS = 1000 * 60 * 15;
 const OWNER_STALE_TTL_MS = 1000 * 60 * 60 * 24;
 const OWNER_DEFAULT_BACKOFF_MS = 1000 * 60 * 2;
+const MAX_RETRY_BACKOFF_MS = 1000 * 60 * 60 * 24;
 
 const ownerCache: OwnerCache = {
   payload: null,
@@ -41,20 +103,21 @@ const ownerCache: OwnerCache = {
   nextRetryAt: 0
 };
 
-function disconnected(reason: string, mode: TopRoutePayload["mode"] = "none"): TopRoutePayload {
-  return {
-    ...EMPTY_RESPONSE,
-    reason,
-    mode
-  };
-}
+type ResponseOptions = {
+  cacheControl?: string;
+  retryAfterSeconds?: number;
+};
 
-function responseWithPayload(payload: TopRoutePayload, cacheControl = "no-store") {
-  return NextResponse.json(payload, {
-    headers: {
-      "Cache-Control": cacheControl
-    }
-  });
+function responseWithPayload(payload: TopRoutePayload, options?: ResponseOptions) {
+  const headers: Record<string, string> = {
+    "Cache-Control": options?.cacheControl ?? "no-store"
+  };
+
+  if (options?.retryAfterSeconds && options.retryAfterSeconds > 0) {
+    headers["Retry-After"] = String(options.retryAfterSeconds);
+  }
+
+  return NextResponse.json(payload, { headers });
 }
 
 function isRateLimited(reason: string | null) {
@@ -71,10 +134,18 @@ function getRetryDelayMs(reason: string | null) {
     return OWNER_DEFAULT_BACKOFF_MS;
   }
 
-  // Spotify docs describe seconds, but some responses return millisecond-like values.
-  // Heuristic: small values are seconds; large values are already milliseconds.
-  const asMs = raw <= 180 ? raw * 1000 : raw;
-  return Math.min(Math.max(asMs, 15_000), 15 * 60 * 1000);
+  // Spotify Retry-After is documented as seconds.
+  const asMs = raw * 1000;
+  return Math.min(Math.max(asMs, 15_000), MAX_RETRY_BACKOFF_MS);
+}
+
+function toRetrySeconds(delayMs: number) {
+  return Math.max(1, Math.ceil(delayMs / 1000));
+}
+
+function rateLimitCacheControl(retrySeconds: number) {
+  const clamped = Math.max(60, Math.min(retrySeconds, 60 * 60));
+  return `public, s-maxage=${clamped}, stale-while-revalidate=300`;
 }
 
 function ownerCachePayload(): TopRoutePayload | null {
@@ -84,6 +155,14 @@ function ownerCachePayload(): TopRoutePayload | null {
   return {
     ...ownerCache.payload,
     mode: "owner"
+  };
+}
+
+function ownerFallbackPayload(reason: string): TopRoutePayload {
+  return {
+    ...OWNER_FALLBACK_PAYLOAD,
+    mode: "owner",
+    reason
   };
 }
 
@@ -110,61 +189,100 @@ async function refreshIfPossible(refreshToken: string) {
 
 export async function GET(request: NextRequest) {
   void request;
-  const ownerRefreshToken = process.env.SPOTIFY_REFRESH_TOKEN?.trim();
-  if (!ownerRefreshToken) {
-    return responseWithPayload(disconnected("owner_refresh_token_missing", "none"), "no-store");
-  }
-
-  const now = Date.now();
-  if (ownerCache.payload && now < ownerCache.expiresAt) {
-    const payload = ownerCachePayload();
-    if (!payload) {
-      return responseWithPayload(disconnected("owner_cache_missing", "owner"), "no-store");
+  try {
+    const ownerRefreshToken = process.env.SPOTIFY_REFRESH_TOKEN?.trim();
+    if (!ownerRefreshToken) {
+      return responseWithPayload(ownerFallbackPayload("owner_refresh_token_missing"), {
+        cacheControl: "public, s-maxage=600, stale-while-revalidate=3600"
+      });
     }
-    return responseWithPayload(payload, "public, s-maxage=120, stale-while-revalidate=1800");
-  }
 
-  if (now < ownerCache.nextRetryAt) {
-    const payload = ownerCachePayload();
-    if (payload) {
-      return responseWithPayload(payload, "public, s-maxage=60, stale-while-revalidate=1800");
+    const now = Date.now();
+    if (ownerCache.payload && now < ownerCache.expiresAt) {
+      const payload = ownerCachePayload();
+      if (payload) {
+        return responseWithPayload(payload, {
+          cacheControl: "public, s-maxage=180, stale-while-revalidate=1800"
+        });
+      }
     }
-    return responseWithPayload(disconnected("owner_rate_limited_backoff", "owner"), "public, s-maxage=60");
-  }
 
-  const ownerTokenData = await refreshIfPossible(ownerRefreshToken);
-  if (!ownerTokenData) {
+    if (now < ownerCache.nextRetryAt) {
+      const retrySeconds = toRetrySeconds(ownerCache.nextRetryAt - now);
+      const payload = ownerCachePayload();
+      if (payload) {
+        return responseWithPayload(payload, {
+          cacheControl: rateLimitCacheControl(retrySeconds),
+          retryAfterSeconds: retrySeconds
+        });
+      }
+      return responseWithPayload(ownerFallbackPayload("owner_rate_limited_backoff"), {
+        cacheControl: rateLimitCacheControl(retrySeconds),
+        retryAfterSeconds: retrySeconds
+      });
+    }
+
+    const ownerTokenData = await refreshIfPossible(ownerRefreshToken);
+    if (!ownerTokenData) {
+      const payload = ownerCachePayload();
+      if (payload && now < ownerCache.staleUntil) {
+        return responseWithPayload(payload, {
+          cacheControl: "public, s-maxage=180, stale-while-revalidate=1800"
+        });
+      }
+      return responseWithPayload(ownerFallbackPayload("owner_refresh_failed"), {
+        cacheControl: "public, s-maxage=300, stale-while-revalidate=1800"
+      });
+    }
+
+    const ownerResult = await fetchSpotifyTopData(ownerTokenData.accessToken);
+    if (ownerResult.ok) {
+      ownerCache.payload = ownerResult.payload;
+      ownerCache.expiresAt = now + OWNER_CACHE_TTL_MS;
+      ownerCache.staleUntil = now + OWNER_STALE_TTL_MS;
+      ownerCache.nextRetryAt = 0;
+      return responseWithPayload(
+        {
+          ...ownerResult.payload,
+          mode: "owner"
+        },
+        {
+          cacheControl: "public, s-maxage=180, stale-while-revalidate=1800"
+        }
+      );
+    }
+
+    const failureReason = `owner_fetch_failed:${ownerResult.reason}`;
+    if (isRateLimited(ownerResult.reason)) {
+      const delayMs = getRetryDelayMs(ownerResult.reason);
+      ownerCache.nextRetryAt = now + delayMs;
+      const retrySeconds = toRetrySeconds(delayMs);
+      const payload = ownerCachePayload();
+      if (payload && now < ownerCache.staleUntil) {
+        return responseWithPayload(payload, {
+          cacheControl: rateLimitCacheControl(retrySeconds),
+          retryAfterSeconds: retrySeconds
+        });
+      }
+      return responseWithPayload(ownerFallbackPayload(failureReason), {
+        cacheControl: rateLimitCacheControl(retrySeconds),
+        retryAfterSeconds: retrySeconds
+      });
+    }
+
     const payload = ownerCachePayload();
     if (payload && now < ownerCache.staleUntil) {
-      return responseWithPayload(payload, "public, s-maxage=60, stale-while-revalidate=1800");
+      return responseWithPayload(payload, {
+        cacheControl: "public, s-maxage=180, stale-while-revalidate=1800"
+      });
     }
-    return responseWithPayload(disconnected("owner_refresh_failed", "owner"), "no-store");
-  }
 
-  const ownerResult = await fetchSpotifyTopData(ownerTokenData.accessToken);
-  if (ownerResult.ok) {
-    ownerCache.payload = ownerResult.payload;
-    ownerCache.expiresAt = now + OWNER_CACHE_TTL_MS;
-    ownerCache.staleUntil = now + OWNER_STALE_TTL_MS;
-    ownerCache.nextRetryAt = 0;
-    return responseWithPayload(
-      {
-        ...ownerResult.payload,
-        mode: "owner"
-      },
-      "public, s-maxage=120, stale-while-revalidate=1800"
-    );
+    return responseWithPayload(ownerFallbackPayload(failureReason), {
+      cacheControl: "public, s-maxage=300, stale-while-revalidate=1800"
+    });
+  } catch {
+    return responseWithPayload(ownerFallbackPayload("owner_unexpected_error"), {
+      cacheControl: "public, s-maxage=300, stale-while-revalidate=1800"
+    });
   }
-
-  const failureReason = `owner_fetch_failed:${ownerResult.reason}`;
-  if (isRateLimited(ownerResult.reason)) {
-    ownerCache.nextRetryAt = now + getRetryDelayMs(ownerResult.reason);
-  }
-
-  const payload = ownerCachePayload();
-  if (payload && now < ownerCache.staleUntil) {
-    return responseWithPayload(payload, "public, s-maxage=60, stale-while-revalidate=1800");
-  }
-
-  return responseWithPayload(disconnected(failureReason, "owner"), "public, s-maxage=60");
 }

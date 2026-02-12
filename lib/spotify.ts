@@ -2,7 +2,8 @@ import type { NextRequest } from "next/server";
 
 const ACCOUNTS_BASE_URL = "https://accounts.spotify.com";
 const API_BASE_URL = "https://api.spotify.com/v1";
-const TOP_LIMIT = 5;
+const TOP_ARTISTS_LIMIT = 5;
+const TOP_TRACKS_LIMIT = 10;
 const TOP_RANGE = "medium_term";
 
 type TokenResponse = {
@@ -171,11 +172,11 @@ async function parseSpotifyError(response: Response, fallback: string): Promise<
 export async function fetchSpotifyTopData(accessToken: string): Promise<SpotifyTopFetchResult> {
   const headers = { Authorization: `Bearer ${accessToken}` };
   const [artistsRes, tracksRes, profileRes] = await Promise.all([
-    fetch(`${API_BASE_URL}/me/top/artists?limit=${TOP_LIMIT}&time_range=${TOP_RANGE}`, {
+    fetch(`${API_BASE_URL}/me/top/artists?limit=${TOP_ARTISTS_LIMIT}&time_range=${TOP_RANGE}`, {
       headers,
       cache: "no-store"
     }),
-    fetch(`${API_BASE_URL}/me/top/tracks?limit=${TOP_LIMIT}&time_range=${TOP_RANGE}`, {
+    fetch(`${API_BASE_URL}/me/top/tracks?limit=${TOP_TRACKS_LIMIT}&time_range=${TOP_RANGE}`, {
       headers,
       cache: "no-store"
     }),

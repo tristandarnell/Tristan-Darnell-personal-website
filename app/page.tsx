@@ -42,9 +42,21 @@ type SpotifyTopResponse = {
   } | null;
 };
 
+type SpotifyClientCache = {
+  savedAt: number;
+  data: SpotifyTopResponse;
+};
+
+const SPOTIFY_CLIENT_CACHE_KEY = "spotify_top_cache_v1";
+const SPOTIFY_CLIENT_CACHE_TTL_MS = 1000 * 60 * 30;
+
 function formatSpotifyReason(reason?: string): string {
   if (!reason) {
     return "";
+  }
+
+  if (reason.includes("owner_rate_limited_backoff")) {
+    return "Spotify is rate limited right now. Showing cached data while it recovers.";
   }
 
   if (reason.includes(":429")) {
@@ -53,8 +65,13 @@ function formatSpotifyReason(reason?: string): string {
       return "Spotify is rate limited right now. Retrying shortly.";
     }
     const raw = Number(retryMatch[1]);
-    const delayMs = Number.isFinite(raw) ? (raw <= 180 ? raw * 1000 : raw) : 0;
-    const delaySec = Math.max(1, Math.round(delayMs / 1000));
+    const delaySec = Number.isFinite(raw) ? Math.max(1, Math.round(raw)) : 0;
+    if (delaySec >= 3600) {
+      return `Spotify is rate limited right now. Retrying in about ${Math.ceil(delaySec / 3600)}h.`;
+    }
+    if (delaySec >= 120) {
+      return `Spotify is rate limited right now. Retrying in about ${Math.ceil(delaySec / 60)}m.`;
+    }
     return `Spotify is rate limited right now. Retrying in about ${delaySec}s.`;
   }
 
@@ -74,6 +91,8 @@ export default function Home() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [spotifyData, setSpotifyData] = useState<SpotifyTopResponse | null>(null);
   const [spotifyLoading, setSpotifyLoading] = useState(true);
+  const spotifyDisplayData =
+    spotifyData && (spotifyData.connected || spotifyData.artists.length > 0 || spotifyData.tracks.length > 0) ? spotifyData : null;
   const linkedinUrl = profile.links.find((link) => link.label === "LinkedIn")?.href ?? "#";
   const githubUrl = profile.links.find((link) => link.label === "GitHub")?.href ?? "#";
   const showImageSrc = (character: "arya" | "omar") => {
@@ -121,19 +140,64 @@ export default function Home() {
 
   useEffect(() => {
     let active = true;
-    const loadSpotifyTop = async () => {
+    const readSpotifyCache = () => {
       try {
-        const response = await fetch("/api/spotify/top");
+        const raw = window.localStorage.getItem(SPOTIFY_CLIENT_CACHE_KEY);
+        if (!raw) {
+          return null;
+        }
+        const parsed = JSON.parse(raw) as SpotifyClientCache;
+        if (!parsed || typeof parsed.savedAt !== "number" || !parsed.data) {
+          return null;
+        }
+        return parsed;
+      } catch {
+        return null;
+      }
+    };
+
+    const writeSpotifyCache = (data: SpotifyTopResponse) => {
+      try {
+        const payload: SpotifyClientCache = { savedAt: Date.now(), data };
+        window.localStorage.setItem(SPOTIFY_CLIENT_CACHE_KEY, JSON.stringify(payload));
+      } catch {
+        // Ignore client cache write failures.
+      }
+    };
+
+    const loadSpotifyTop = async () => {
+      const cached = readSpotifyCache();
+      const hasCachedData =
+        Boolean(cached?.data.connected) ||
+        Boolean(cached?.data.artists.length) ||
+        Boolean(cached?.data.tracks.length);
+
+      if (cached && hasCachedData && active) {
+        setSpotifyData(cached.data);
+        setSpotifyLoading(false);
+      }
+
+      if (cached && Date.now() - cached.savedAt < SPOTIFY_CLIENT_CACHE_TTL_MS) {
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/spotify/top", { cache: "no-store" });
         if (!response.ok) {
           throw new Error("Failed to fetch Spotify data");
         }
         const data: SpotifyTopResponse = await response.json();
         if (active) {
           setSpotifyData(data);
+          if (data.connected || data.artists.length > 0 || data.tracks.length > 0) {
+            writeSpotifyCache(data);
+          }
         }
       } catch {
         if (active) {
-          setSpotifyData({ connected: false, artists: [], tracks: [], profile: null });
+          if (!cached) {
+            setSpotifyData({ connected: false, artists: [], tracks: [], profile: null });
+          }
         }
       } finally {
         if (active) {
@@ -428,7 +492,7 @@ export default function Home() {
               <CardContent className="spotify-content p-0">
                 {spotifyLoading ? (
                   <p className="spotify-state">Loading Spotify data...</p>
-                ) : !spotifyData?.connected ? (
+                ) : !spotifyDisplayData ? (
                   <p className="spotify-state">
                     Spotify data is unavailable right now. Check back shortly.
                     {spotifyData?.reason ? ` ${formatSpotifyReason(spotifyData.reason)}` : ""}
@@ -438,7 +502,7 @@ export default function Home() {
                     <section className="spotify-strip-block">
                       <p className="spotify-panel-label">Top Artists</p>
                       <ul className="spotify-artist-rail">
-                        {spotifyData.artists.map((artist, index) => (
+                        {spotifyDisplayData.artists.map((artist, index) => (
                           <li key={artist.id}>
                             <a href={artist.url} target="_blank" rel="noreferrer" className="spotify-artist-pill">
                               <span className="spotify-index">{index + 1}</span>
@@ -461,7 +525,7 @@ export default function Home() {
                         <span>Artist</span>
                       </div>
                       <ul className="spotify-table-list">
-                        {spotifyData.tracks.map((track, index) => (
+                        {spotifyDisplayData.tracks.map((track, index) => (
                           <li key={track.id} className="spotify-table-row">
                             <span className="spotify-index">{index + 1}</span>
                             <a href={track.url} target="_blank" rel="noreferrer" className="spotify-link truncate">
@@ -473,9 +537,9 @@ export default function Home() {
                       </ul>
                     </section>
 
-                    {spotifyData.profile ? (
-                      <a href={spotifyData.profile.url} target="_blank" rel="noreferrer" className="spotify-profile-link">
-                        Open {spotifyData.profile.displayName}&apos;s Spotify profile
+                    {spotifyDisplayData.profile ? (
+                      <a href={spotifyDisplayData.profile.url} target="_blank" rel="noreferrer" className="spotify-profile-link">
+                        Open {spotifyDisplayData.profile.displayName}&apos;s Spotify profile
                       </a>
                     ) : null}
                   </>
