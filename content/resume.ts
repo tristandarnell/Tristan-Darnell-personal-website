@@ -107,9 +107,9 @@ export const projects = [
 export const media = {
   spotifyEmbedUrl: "https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M?utm_source=generator",
   spotifyLink: "https://open.spotify.com/",
-  aryaImage: "/images/images-2.jpeg",
+  aryaImage: "/images/aryastark.jpg",
   aryaFallback: "/images/arya-placeholder.svg",
-  omarImage: "/images/omar-the-wire.jpg.webp",
+  omarImage: "/images/omarlittle.jpg",
   omarFallback: "/images/omar-placeholder.svg",
   personalPhotos: [
     { src: "/images/IMG_4188.jpg", alt: "Tristan outdoors at sunset" },

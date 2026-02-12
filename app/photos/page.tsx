@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { media, profile } from "@/content/resume";
 
-const galleryPhotos = media.personalPhotos.slice(2);
-const galleryFallbacks = ["/images/profile-working.svg", "/images/profile-campus.svg"];
+const galleryPhotos = media.personalPhotos.slice(0, 2);
+const galleryFallbacks = ["/images/profile-portrait.svg", "/images/profile-campus.svg"];
 
 export default function PhotosPage() {
   const [theme, setTheme] = useState<"light" | "dark">("light");

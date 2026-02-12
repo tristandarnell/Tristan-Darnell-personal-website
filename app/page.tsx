@@ -16,13 +16,39 @@ const navItems = [
   { href: "/photos", label: "Photos" }
 ] as const;
 
+type SpotifyArtist = {
+  id: string;
+  name: string;
+  image: string | null;
+  url: string;
+};
+
+type SpotifyTrack = {
+  id: string;
+  name: string;
+  artists: string[];
+  url: string;
+};
+
+type SpotifyTopResponse = {
+  connected: boolean;
+  artists: SpotifyArtist[];
+  tracks: SpotifyTrack[];
+  profile: {
+    displayName: string;
+    url: string;
+  } | null;
+};
+
 export default function Home() {
   const [showImageErrors, setShowImageErrors] = useState({ arya: false, omar: false });
-  const homePhotos = media.personalPhotos.slice(0, 2);
+  const homePhotos = media.personalPhotos.slice(2);
   const homePhotoFallbacks = ["/images/profile-portrait.svg", "/images/profile-campus.svg"];
   const [homePhotoErrors, setHomePhotoErrors] = useState<boolean[]>(homePhotos.map(() => false));
   const [menuOpen, setMenuOpen] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [spotifyData, setSpotifyData] = useState<SpotifyTopResponse | null>(null);
+  const [spotifyLoading, setSpotifyLoading] = useState(true);
   const linkedinUrl = profile.links.find((link) => link.label === "LinkedIn")?.href ?? "#";
   const githubUrl = profile.links.find((link) => link.label === "GitHub")?.href ?? "#";
   const showImageSrc = (character: "arya" | "omar") => {
@@ -67,6 +93,34 @@ export default function Home() {
       window.removeEventListener("keydown", onEsc);
     };
   }, [menuOpen]);
+
+  useEffect(() => {
+    let active = true;
+    const loadSpotifyTop = async () => {
+      try {
+        const response = await fetch("/api/spotify/top", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Failed to fetch Spotify data");
+        }
+        const data: SpotifyTopResponse = await response.json();
+        if (active) {
+          setSpotifyData(data);
+        }
+      } catch {
+        if (active) {
+          setSpotifyData({ connected: false, artists: [], tracks: [], profile: null });
+        }
+      } finally {
+        if (active) {
+          setSpotifyLoading(false);
+        }
+      }
+    };
+    loadSpotifyTop();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <div className="playful-shell relative min-h-screen">
@@ -130,11 +184,22 @@ export default function Home() {
       <main className="site-main space-y-16 pb-20 pt-10 md:space-y-20 md:pt-14">
         <section className="section hero-section gap-6">
           <div className="hero-float-layer" aria-hidden="true">
-            <div className="hero-float hero-float-arya">
-              <img src={showImageSrc("arya")} alt="" onError={() => onShowImageError("arya")} className="hero-float-base" />
-            </div>
-            <div className="hero-float hero-float-omar">
-              <img src={showImageSrc("omar")} alt="" onError={() => onShowImageError("omar")} className="hero-float-base" />
+            <div className="hero-shows-block">
+              <p className="hero-shows-heading">Favorite Shows</p>
+              <div className="hero-shows-grid">
+                <div className="hero-show-item hero-show-item-arya">
+                  <div className="hero-float">
+                    <img src={showImageSrc("arya")} alt="" onError={() => onShowImageError("arya")} className="hero-float-base" />
+                  </div>
+                  <p className="hero-show-label">Game of Thrones</p>
+                </div>
+                <div className="hero-show-item hero-show-item-omar">
+                  <div className="hero-float">
+                    <img src={showImageSrc("omar")} alt="" onError={() => onShowImageError("omar")} className="hero-float-base" />
+                  </div>
+                  <p className="hero-show-label">The Wire</p>
+                </div>
+              </div>
             </div>
           </div>
           <div className="max-w-3xl">
@@ -144,6 +209,18 @@ export default function Home() {
               </Badge>
               <h1 className="name-gradient text-4xl font-semibold leading-tight sm:text-5xl">{profile.name}</h1>
               <p className="max-w-2xl text-lg text-muted">{profile.blurb}</p>
+              <div className="hero-personal-photos">
+                {homePhotos.map((photo, idx) => (
+                  <figure key={photo.src} className={`hero-photo-chip ${idx === 0 ? "hero-photo-left" : "hero-photo-right"}`}>
+                    <img
+                      src={homePhotoSrc(idx)}
+                      alt={photo.alt}
+                      onError={() => onHomePhotoError(idx)}
+                      className="hero-photo-img"
+                    />
+                  </figure>
+                ))}
+              </div>
               <div className="flex flex-wrap gap-3">
                 <Button size="lg" asChild>
                   <a href={`mailto:${profile.email}`}>Email</a>
@@ -163,8 +240,10 @@ export default function Home() {
                   <Github className="h-4 w-4" />
                   <span className="tag-chip rounded-full px-2 py-0.5">GitHub</span>
                 </a>
-                <a className="inline-flex items-center gap-2 transition-colors hover:text-foreground" href={`mailto:${profile.email}`}>
-                  <Mail className="h-4 w-4" />
+                <a className="hero-email-link inline-flex items-center gap-2 transition-colors hover:text-foreground" href={`mailto:${profile.email}`}>
+                  <span className="hero-email-icon" aria-hidden="true">
+                    <Mail className="h-3.5 w-3.5" />
+                  </span>
                   <span className="tag-chip rounded-full px-2 py-0.5">Email</span>
                 </a>
               </div>
@@ -174,9 +253,7 @@ export default function Home() {
 
         <section id="experience" className="section">
           <div className="section-heading">
-            <Badge className="w-fit">Experience</Badge>
             <h2 className="section-title text-3xl font-semibold text-slate-900">Experience</h2>
-            <p className="max-w-3xl text-muted">Role history with clear technical ownership and outcomes.</p>
           </div>
           <div className="relative ml-2 border-l border-blue-100 pl-7">
             {experience.map((item) => (
@@ -320,49 +397,77 @@ export default function Home() {
                   Spotify
                 </CardTitle>
                 <CardDescription className="text-base text-muted">
-                  Drop your public Spotify playlist link and I will wire your exact listening profile.
+                  Live top artists and songs from my Spotify account.
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                <iframe
-                  title="Spotify player"
-                  src={media.spotifyEmbedUrl}
-                  width="100%"
-                  height="352"
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                  loading="lazy"
-                  className="w-full rounded-xl border border-blue-100"
-                />
-                <a
-                  href={media.spotifyLink}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-3 inline-flex text-sm font-medium text-primary transition-colors hover:text-blue-700"
-                >
-                  Open on Spotify
-                </a>
+                {spotifyLoading ? (
+                  <p className="text-sm text-muted">Loading Spotify data...</p>
+                ) : !spotifyData?.connected ? (
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted">Connect Spotify to show your top artists and tracks.</p>
+                    <Button asChild>
+                      <a href="/api/spotify/login">Connect Spotify</a>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-blue-700">Top Artists</p>
+                      <ul className="mt-2 space-y-2 text-sm">
+                        {spotifyData.artists.map((artist, index) => (
+                          <li key={artist.id} className="flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                            <span className="w-5 text-xs text-muted">{index + 1}</span>
+                            {artist.image ? (
+                              <img src={artist.image} alt={artist.name} className="h-7 w-7 rounded-full object-cover" />
+                            ) : (
+                              <span className="h-7 w-7 rounded-full border border-blue-200" />
+                            )}
+                            <a href={artist.url} target="_blank" rel="noreferrer" className="hover:text-primary">
+                              {artist.name}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-blue-700">Top Songs</p>
+                      <ul className="mt-2 space-y-2 text-sm">
+                        {spotifyData.tracks.map((track, index) => (
+                          <li key={track.id} className="flex gap-2 text-slate-800 dark:text-slate-200">
+                            <span className="w-5 text-xs text-muted">{index + 1}</span>
+                            <div className="min-w-0">
+                              <a href={track.url} target="_blank" rel="noreferrer" className="truncate hover:text-primary">
+                                {track.name}
+                              </a>
+                              <p className="truncate text-xs text-muted">{track.artists.join(", ")}</p>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    {spotifyData.profile ? (
+                      <a
+                        href={spotifyData.profile.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm font-medium text-primary transition-colors hover:text-blue-700 md:col-span-2"
+                      >
+                        Open {spotifyData.profile.displayName}&apos;s Spotify profile
+                      </a>
+                    ) : null}
+                  </div>
+                )}
               </CardContent>
             </Card>
             <Card className="photo-card p-5">
               <CardHeader className="p-0 pb-4">
-                <CardTitle className="text-2xl text-slate-900">Photos</CardTitle>
+                <CardTitle className="text-2xl text-slate-900">Photography</CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-3 p-0">
-                {homePhotos.map((photo, idx) => (
-                  <figure key={photo.src} className={`photo-polaroid ${idx === 0 ? "tilt-left" : "tilt-right"}`}>
-                    <img
-                      src={homePhotoSrc(idx)}
-                      alt={photo.alt}
-                      onError={() => onHomePhotoError(idx)}
-                      className="h-56 w-full rounded-lg border border-blue-100 object-cover"
-                    />
-                  </figure>
-                ))}
-                <div className="col-span-2 pt-1">
-                  <Button asChild variant="ghost">
-                    <a href="/photos">View Photography 📸</a>
-                  </Button>
-                </div>
+              <CardContent className="p-0">
+                <Button asChild variant="ghost">
+                  <a href="/photos">View Photography 📸</a>
+                </Button>
               </CardContent>
             </Card>
           </div>
