@@ -5,6 +5,7 @@ import {
   Activity,
   Atom,
   Binary,
+  BookOpenText,
   Blocks,
   Braces,
   ChartLine,
@@ -28,6 +29,7 @@ import {
   Sigma,
   Sun,
   Timer,
+  Podcast,
   Wind,
   Workflow,
   Wrench,
@@ -575,21 +577,51 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className="hero-float-layer" aria-hidden="true">
+          <div className="hero-float-layer">
             <div className="hero-shows-block">
-              <p className="hero-shows-heading">Favorite Shows</p>
+              <p className="hero-shows-heading">Current Rotation</p>
               <div className="hero-shows-grid">
                 <div className="hero-show-item hero-show-item-arya">
                   <div className="hero-float" data-quote="Winter is coming ❄️">
-                    <img src={showImageSrc("arya")} alt="" onError={() => onShowImageError("arya")} className="hero-float-base" />
+                    <img src={showImageSrc("arya")} alt="Arya Stark from Game of Thrones" onError={() => onShowImageError("arya")} className="hero-float-base" />
                   </div>
                   <p className="hero-show-label">Game of Thrones</p>
                 </div>
                 <div className="hero-show-item hero-show-item-omar">
                   <div className="hero-float" data-quote="A Man's gotta have a code 🧠🔥">
-                    <img src={showImageSrc("omar")} alt="" onError={() => onShowImageError("omar")} className="hero-float-base" />
+                    <img src={showImageSrc("omar")} alt="Omar Little from The Wire" onError={() => onShowImageError("omar")} className="hero-float-base" />
                   </div>
                   <p className="hero-show-label">The Wire</p>
+                </div>
+              </div>
+              <div className="hero-media-grid">
+                <div className="hero-media-group">
+                  <p className="hero-media-heading">
+                    <BookOpenText className="h-3.5 w-3.5" />
+                    Books
+                  </p>
+                  <div className="hero-media-covers">
+                    {media.favoriteBooks.map((book) => (
+                      <figure key={book.title} className="hero-media-cover">
+                        <img src={book.cover} alt={book.title} className="hero-media-cover-img" />
+                        <figcaption className="hero-media-caption">{book.title}</figcaption>
+                      </figure>
+                    ))}
+                  </div>
+                </div>
+                <div className="hero-media-group">
+                  <p className="hero-media-heading">
+                    <Podcast className="h-3.5 w-3.5" />
+                    Podcasts
+                  </p>
+                  <div className="hero-media-covers">
+                    {media.favoritePodcasts.map((podcast) => (
+                      <figure key={podcast.title} className="hero-media-cover hero-media-cover-podcast">
+                        <img src={podcast.cover} alt={podcast.title} className="hero-media-cover-img" />
+                        <figcaption className="hero-media-caption">{podcast.title}</figcaption>
+                      </figure>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

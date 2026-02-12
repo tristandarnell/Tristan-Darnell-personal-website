@@ -594,7 +594,7 @@ a {
 
 .hero-section {
   overflow: visible;
-  padding-bottom: 42px;
+  padding-bottom: 86px;
 }
 
 .hero-section > .max-w-3xl {
@@ -625,6 +625,71 @@ a {
   display: flex;
   gap: 0.9rem;
   align-items: flex-start;
+}
+
+.hero-media-grid {
+  width: min(100%, calc(var(--hero-show-size) * 2 + 0.9rem));
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.52rem;
+}
+
+.hero-media-group {
+  border-radius: 12px;
+  border: 1px solid rgba(147, 197, 253, 0.64);
+  background: rgba(255, 255, 255, 0.84);
+  padding: 0.38rem;
+}
+
+.hero-media-heading {
+  margin: 0 0 0.3rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #1e3a8a;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hero-media-covers {
+  display: flex;
+  gap: 0.34rem;
+}
+
+.hero-media-cover {
+  margin: 0;
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: 0.18rem;
+}
+
+.hero-media-cover-podcast {
+  max-width: 124px;
+}
+
+.hero-media-cover-img {
+  display: block;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid rgba(147, 197, 253, 0.72);
+  background: rgba(224, 242, 254, 0.5);
+  object-fit: cover;
+  aspect-ratio: 3 / 4;
+}
+
+.hero-media-cover-podcast .hero-media-cover-img {
+  aspect-ratio: 1 / 1;
+}
+
+.hero-media-caption {
+  margin: 0;
+  font-size: 0.56rem;
+  line-height: 1.2;
+  color: #0f172a;
+  text-align: center;
 }
 
 .hero-shows-heading {
@@ -762,6 +827,24 @@ a {
   border-color: rgba(96, 165, 250, 0.58);
   background: linear-gradient(140deg, rgba(30, 64, 175, 0.62), rgba(37, 99, 235, 0.48), rgba(8, 47, 73, 0.66));
   color: #eff6ff;
+}
+
+.dark .hero-media-group {
+  border-color: rgba(96, 165, 250, 0.48);
+  background: rgba(30, 41, 59, 0.82);
+}
+
+.dark .hero-media-heading {
+  color: #bfdbfe;
+}
+
+.dark .hero-media-cover-img {
+  border-color: rgba(96, 165, 250, 0.46);
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.dark .hero-media-caption {
+  color: #dbeafe;
 }
 
 .dark .hero-show-label {
@@ -1559,6 +1642,10 @@ a {
     --hero-show-size: clamp(146px, 20vw, 206px);
     gap: 0.6rem;
   }
+
+  .hero-media-caption {
+    font-size: 0.53rem;
+  }
 }
 
 @media (max-width: 960px) {
@@ -1595,6 +1682,11 @@ a {
     justify-content: center;
   }
 
+  .hero-media-grid {
+    width: min(100%, 420px);
+    gap: 0.45rem;
+  }
+
   .hero-float {
     border-radius: 12px;
     opacity: 0.94;
@@ -1620,6 +1712,15 @@ a {
 @media (max-width: 640px) {
   .hero-shows-grid {
     --hero-show-size: clamp(96px, 27vw, 116px);
+  }
+
+  .hero-media-grid {
+    grid-template-columns: 1fr;
+    width: min(100%, 320px);
+  }
+
+  .hero-media-cover-podcast {
+    max-width: 100%;
   }
 
   .hero-personal-photos {

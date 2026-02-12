@@ -160,6 +160,12 @@ export const media = {
     { src: "/images/IMG_4278.JPG", alt: "Tristan personal photo" }
   ],
   favoriteShows: ["Game of Thrones", "The Wire"],
+  favoriteBooks: [
+    { title: "Catch-22", cover: "/images/Catch%2022.jpg" },
+    { title: "The Big Short", cover: "/images/The%20Big%20Short.jpg" },
+    { title: "Ender's Shadow", cover: "/images/Enders%20shadow.jpg" }
+  ],
+  favoritePodcasts: [{ title: "Flirting with Models", cover: "/images/Flirting%20with%20models.png" }],
   interests: ["Fishing at sunset", "Music while coding", "Building side projects", "Competitive problem solving"]
 };
 
