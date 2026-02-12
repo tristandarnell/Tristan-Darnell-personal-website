@@ -66,7 +66,15 @@ function getRetryDelayMs(reason: string | null) {
   if (!match) {
     return OWNER_DEFAULT_BACKOFF_MS;
   }
-  return Math.max(Number(match[1]) * 1000, OWNER_DEFAULT_BACKOFF_MS);
+  const raw = Number(match[1]);
+  if (!Number.isFinite(raw) || raw <= 0) {
+    return OWNER_DEFAULT_BACKOFF_MS;
+  }
+
+  // Spotify docs describe seconds, but some responses return millisecond-like values.
+  // Heuristic: small values are seconds; large values are already milliseconds.
+  const asMs = raw <= 180 ? raw * 1000 : raw;
+  return Math.min(Math.max(asMs, 15_000), 15 * 60 * 1000);
 }
 
 function ownerCachePayload(): TopRoutePayload | null {
