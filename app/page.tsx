@@ -100,7 +100,7 @@ export default function Home() {
     let active = true;
     const loadSpotifyTop = async () => {
       try {
-        const response = await fetch("/api/spotify/top", { cache: "no-store" });
+        const response = await fetch("/api/spotify/top");
         if (!response.ok) {
           throw new Error("Failed to fetch Spotify data");
         }
