@@ -243,8 +243,10 @@ export default function Home() {
   const [spotifyLoading, setSpotifyLoading] = useState(true);
   const [spotifyBrokenImages, setSpotifyBrokenImages] = useState<Record<string, boolean>>({});
   const spotifyDisplayData = hasSpotifyRows(spotifyData) ? spotifyData : null;
-  const spotifyArtistCount = spotifyDisplayData?.artists.length ?? 0;
-  const spotifyTrackCount = spotifyDisplayData?.tracks.length ?? 0;
+  const spotifyTopArtists = spotifyDisplayData?.artists ?? [];
+  const spotifyTopTracks = (spotifyDisplayData?.tracks ?? []).slice(0, 5);
+  const spotifyArtistCount = spotifyTopArtists.length;
+  const spotifyTrackCount = spotifyTopTracks.length;
   const linkedinUrl = profile.links.find((link) => link.label === "LinkedIn")?.href ?? "#";
   const githubUrl = profile.links.find((link) => link.label === "GitHub")?.href ?? "#";
   const showImageSrc = (character: "arya" | "omar") => {
@@ -596,6 +598,10 @@ export default function Home() {
             <div className="hero-shows-block">
               <p className="hero-shows-heading">Favorites</p>
               <div className="hero-shows-box">
+                <p className="hero-media-heading hero-media-heading-shows" aria-label="Shows">
+                  <span aria-hidden="true">🎬</span>
+                  Shows
+                </p>
                 <div className="hero-shows-grid">
                   <div className="hero-show-item hero-show-item-arya">
                     <div className="hero-float" data-quote="Winter is coming">
@@ -836,6 +842,15 @@ export default function Home() {
                 <CardDescription className="spotify-subtitle text-base text-muted">
                   Live top artists and songs from my Spotify account.
                 </CardDescription>
+                <a
+                  href={spotifyDisplayData?.profile?.url ?? media.spotifyLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="spotify-profile-link"
+                >
+                  <Music4 className="h-4 w-4" aria-hidden="true" />
+                  <span>View my Spotify profile</span>
+                </a>
               </CardHeader>
               <CardContent className="spotify-content p-0">
                 {spotifyLoading ? (
@@ -850,7 +865,7 @@ export default function Home() {
                     <section className="spotify-strip-block">
                       <p className="spotify-panel-label">Top Artists</p>
                       <ul className="spotify-artist-rail">
-                        {spotifyDisplayData.artists.map((artist, index) => {
+                        {spotifyTopArtists.map((artist, index) => {
                           const fallbackImage = getArtistFallbackImage(artist.name);
                           const imageSrc = !spotifyBrokenImages[artist.id] ? artist.image ?? fallbackImage : fallbackImage;
                           return (
@@ -885,7 +900,7 @@ export default function Home() {
                         <span>Artist</span>
                       </div>
                       <ul className="spotify-table-list">
-                        {spotifyDisplayData.tracks.map((track, index) => (
+                        {spotifyTopTracks.map((track, index) => (
                           <li key={track.id} className="spotify-table-row">
                             <span className="spotify-index">{index + 1}</span>
                             <a href={track.url} target="_blank" rel="noreferrer" className="spotify-link truncate">
@@ -896,16 +911,6 @@ export default function Home() {
                         ))}
                       </ul>
                     </section>
-
-                    <a
-                      href={spotifyDisplayData.profile?.url ?? media.spotifyLink}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="spotify-profile-link"
-                    >
-                      <Music4 className="h-4 w-4" aria-hidden="true" />
-                      <span>View my Spotify profile</span>
-                    </a>
                   </>
                 )}
               </CardContent>

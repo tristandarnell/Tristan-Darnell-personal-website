@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 const ACCOUNTS_BASE_URL = "https://accounts.spotify.com";
 const API_BASE_URL = "https://api.spotify.com/v1";
 const TOP_ARTISTS_LIMIT = 5;
-const TOP_TRACKS_LIMIT = 10;
+const TOP_TRACKS_LIMIT = 5;
 const TOP_RANGE = "medium_term";
 const ARTISTS_LOOKUP_BATCH_SIZE = 50;
 
