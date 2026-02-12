@@ -151,18 +151,21 @@ export async function refreshAccessToken(params: {
 }
 
 async function parseSpotifyError(response: Response, fallback: string): Promise<string> {
+  const retryAfter = response.headers.get("retry-after");
+  const retryAfterPart = retryAfter ? `:retry_after=${retryAfter}` : "";
+
   try {
     const json = (await response.json()) as { error?: { message?: string } | string };
     if (typeof json.error === "string" && json.error) {
-      return `${fallback}:${response.status}:${json.error}`;
+      return `${fallback}:${response.status}:${json.error}${retryAfterPart}`;
     }
     if (typeof json.error === "object" && json.error?.message) {
-      return `${fallback}:${response.status}:${json.error.message}`;
+      return `${fallback}:${response.status}:${json.error.message}${retryAfterPart}`;
     }
   } catch {
     // Ignore parse errors and return fallback.
   }
-  return `${fallback}:${response.status}`;
+  return `${fallback}:${response.status}${retryAfterPart}`;
 }
 
 export async function fetchSpotifyTopData(accessToken: string): Promise<SpotifyTopFetchResult> {

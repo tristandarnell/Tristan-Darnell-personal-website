@@ -14,12 +14,27 @@ type TopRoutePayload = SpotifyTopPayload & {
   mode?: "owner" | "cookie" | "none";
 };
 
+type OwnerCache = {
+  payload: SpotifyTopPayload | null;
+  fetchedAt: number;
+  nextRetryAt: number;
+};
+
 const EMPTY_RESPONSE: TopRoutePayload = {
   connected: false,
   artists: [],
   tracks: [],
   profile: null,
   mode: "none"
+};
+
+const OWNER_CACHE_TTL_MS = 1000 * 60 * 10;
+const OWNER_DEFAULT_BACKOFF_MS = 1000 * 60 * 2;
+
+const ownerCache: OwnerCache = {
+  payload: null,
+  fetchedAt: 0,
+  nextRetryAt: 0
 };
 
 function disconnected(reason: string, mode: TopRoutePayload["mode"] = "none"): TopRoutePayload {
@@ -30,12 +45,34 @@ function disconnected(reason: string, mode: TopRoutePayload["mode"] = "none"): T
   };
 }
 
-function responseWithPayload(payload: TopRoutePayload) {
+function responseWithPayload(payload: TopRoutePayload, cacheControl = "no-store") {
   return NextResponse.json(payload, {
     headers: {
-      "Cache-Control": "no-store"
+      "Cache-Control": cacheControl
     }
   });
+}
+
+function isRateLimited(reason: string | null) {
+  return Boolean(reason?.includes(":429"));
+}
+
+function getRetryDelayMs(reason: string | null) {
+  const match = reason?.match(/retry_after=(\d+)/);
+  if (!match) {
+    return OWNER_DEFAULT_BACKOFF_MS;
+  }
+  return Math.max(Number(match[1]) * 1000, OWNER_DEFAULT_BACKOFF_MS);
+}
+
+function ownerCachePayload(): TopRoutePayload | null {
+  if (!ownerCache.payload) {
+    return null;
+  }
+  return {
+    ...ownerCache.payload,
+    mode: "owner"
+  };
 }
 
 function clearSpotifyCookies(response: NextResponse) {
@@ -100,18 +137,69 @@ export async function GET(request: NextRequest) {
   const ownerRefreshToken = process.env.SPOTIFY_REFRESH_TOKEN?.trim();
   let ownerFailureReason: string | null = null;
   if (ownerRefreshToken) {
+    const now = Date.now();
+    const ownerCacheFresh = ownerCache.payload && now - ownerCache.fetchedAt < OWNER_CACHE_TTL_MS;
+    if (ownerCacheFresh) {
+      const payload = ownerCachePayload();
+      if (!payload) {
+        return responseWithPayload(disconnected("owner_cache_missing"), "no-store");
+      }
+      return responseWithPayload(
+        payload,
+        "public, s-maxage=60, stale-while-revalidate=300"
+      );
+    }
+
+    const ownerInBackoff = now < ownerCache.nextRetryAt;
+    if (ownerInBackoff && ownerCache.payload) {
+      const payload = ownerCachePayload();
+      if (!payload) {
+        return responseWithPayload(disconnected("owner_cache_missing"), "no-store");
+      }
+      return responseWithPayload(
+        payload,
+        "public, s-maxage=30, stale-while-revalidate=300"
+      );
+    }
+
     const ownerTokenData = await refreshIfPossible(request, ownerRefreshToken);
     if (!ownerTokenData) {
       ownerFailureReason = "owner_refresh_failed";
+      if (ownerCache.payload) {
+        const payload = ownerCachePayload();
+        if (!payload) {
+          return responseWithPayload(disconnected("owner_cache_missing"), "no-store");
+        }
+        return responseWithPayload(
+          payload,
+          "public, s-maxage=30, stale-while-revalidate=300"
+        );
+      }
     } else {
       const ownerResult = await fetchSpotifyTopData(ownerTokenData.accessToken);
       if (ownerResult.ok) {
+        ownerCache.payload = ownerResult.payload;
+        ownerCache.fetchedAt = now;
+        ownerCache.nextRetryAt = 0;
         return responseWithPayload({
           ...ownerResult.payload,
           mode: "owner"
-        });
+        }, "public, s-maxage=60, stale-while-revalidate=300");
       }
       ownerFailureReason = `owner_fetch_failed:${ownerResult.reason}`;
+      if (isRateLimited(ownerResult.reason)) {
+        ownerCache.nextRetryAt = now + getRetryDelayMs(ownerResult.reason);
+      }
+      if (ownerCache.payload) {
+        const payload = ownerCachePayload();
+        if (!payload) {
+          return responseWithPayload(disconnected("owner_cache_missing"), "no-store");
+        }
+        return responseWithPayload(
+          payload,
+          "public, s-maxage=30, stale-while-revalidate=300"
+        );
+      }
     }
   }
 
